@@ -30,7 +30,7 @@ For help, type:
 
 VERSION
 
-svn_revision = r176 (2008-02-22 18:22:35)
+svn_revision = r2 (2008-03-10 00:42:14)
 
 '''
 
@@ -39,11 +39,6 @@ import sys
 import os
 import optparse
 import copy
-
-sys.path.append(os.environ['HOME']+'/WCs/MyTools/PythonModules')
-
-import FileManipulation as FM
-import System as S
 
 # Read arguments:
 parser = optparse.OptionParser()
@@ -65,6 +60,45 @@ parser.add_option("-v", "--verbose",
 		  default=False)
 
 (o,args) = parser.parse_args()
+
+# Functions:
+
+def now():
+  '''
+  Return current time, in seconds since epoch format.
+  '''
+  date = datetime.datetime.now()
+
+  return time.mktime(date.timetuple())
+
+def myopen(fname,mode='r'):
+  '''
+  Opens a file, checking whether it's gzipped or not, and acts accordingly.
+    fname = name of file to open
+    mode  = mode in which to open
+  '''
+  
+  fname = fname.replace('.gz','') # rm trailing .gz, if any
+  try:
+    f = open(fname,mode)
+  except:
+    try:
+      f = gzip.open(fname+'.gz',mode)
+    except IOError:
+      sys.exit('Could not open file \'' + fname + '\', sorry!')
+
+  return f
+
+def w2file(fname,string):
+  '''
+  Use myopen to open file, write a string to it and then close it.
+    fname  = name of file to write to
+    string = string to write to file
+  '''
+  
+  f = myopen(fname,'w')
+  f.write(string)
+  f.close()
 
 def host_stats(file=None):
   if file == None: sys.exit("bhs.host_stats: Need a file name to process!")
@@ -125,7 +159,7 @@ def host_stats(file=None):
   stat['oth'] = [oth_stat_0,oth_stat_1]
   
   # Return output:
-  nstring = "%12i" % (S.now())
+  nstring = "%12i" % (now())
   cstring = nstring
   for osy in os_list:
     nstring += "%9.0f "  % (stat[osy][0])
@@ -142,9 +176,9 @@ def get_log(url,name):
   '''
 
   if o.verbose:
-    S.cli("wget "+url+name)
+    os.system("wget "+url+name)
   else:
-    S.cli("wget -q "+url+name)
+    os.system("wget -q "+url+name)
 
 def save_log(project,stringa,stringb):
 
@@ -152,23 +186,25 @@ def save_log(project,stringa,stringb):
   if not re.search('\n',stringb): stringb += '\n'
 
   fn = os.environ['HOME']+'/.LOGs/boinc/'+project+'.nhosts.dat'
-  f = FM.myopen(fn,'a')
+  f = myopen(fn,'a')
   f.write(stringa)
   f.close()
 
   fn = os.environ['HOME']+'/.LOGs/boinc/'+project+'.credit.dat'
-  f = FM.myopen(fn,'a')
+  f = myopen(fn,'a')
   f.write(stringb)
   f.close()
 
 def make_plot(fn,type):
   '''
-  Like make_plot, but for speed.
+  Generate plot data from raw data.
+    fn   = name of file with raw data.
+    type = whether to get direct values (total), numerical approx. to d/dt (speed) or d2/dt2 (accel).
   '''
 
   parf = os.environ['HOME']+'/.LOGs/boinc/boinc.par'
 
-  f = FM.myopen(fn,'r')
+  f = myopen(fn,'r')
   lines = f.readlines()
   f.close()
 
@@ -243,7 +279,6 @@ def make_plot(fn,type):
 
   subtit = title[t][type]
 
-  #if type == 'total':
   units = ['','k','M','G']
   stot = tot
   iu   = 0
@@ -255,8 +290,8 @@ def make_plot(fn,type):
 
   tit = name[o.project]
 
-  FM.w2file(tmpf,out_string)
-  S.cli(xmgr+" -noask -nxy "+tmpf+' -p '+parf+' -pexec \'SUBTITLE "'+subtit+'"\' -pexec \'TITLE "'+tit+'"\'')
+  w2file(tmpf,out_string)
+  os.system(xmgr+" -noask -nxy "+tmpf+' -p '+parf+' -pexec \'SUBTITLE "'+subtit+'"\' -pexec \'TITLE "'+tit+'"\'')
   os.unlink(tmpf)
 
 # Define variables:
