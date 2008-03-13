@@ -30,7 +30,7 @@ For help, type:
 
 VERSION
 
-svn_revision = r2 (2008-03-10 00:42:14)
+svn_revision = r176 (2008-02-22 18:22:35)
 
 '''
 
@@ -40,8 +40,19 @@ import os
 import optparse
 import copy
 
+sys.path.append(os.environ['HOME']+'/WCs/MyTools/PythonModules')
+
+import FileManipulation as FM
+import System as S
+
 # Read arguments:
 parser = optparse.OptionParser()
+
+parser.add_option("-P", "--png",
+                  dest='png',
+                  help="Make plots non-interactively, and save them as PNG.",
+		  action="store_true",
+		  default=False)
 
 parser.add_option("-p", "--project",
                   dest="project",
@@ -49,56 +60,16 @@ parser.add_option("-p", "--project",
 		  default='malaria')
 
 parser.add_option("-r", "--retrieve",
-                  help="Retrieve data, instead of just ploting logged values. Default: don't retrieve.",
+                  help="Retrieve data, instead of ploting logged values. Default: don't retrieve.",
 		  action="store_true",
 		  default=False)
 
 parser.add_option("-v", "--verbose",
-                  dest="verbose",
                   help="Be verbose. Default: don't be.",
 		  action="store_true",
 		  default=False)
 
 (o,args) = parser.parse_args()
-
-# Functions:
-
-def now():
-  '''
-  Return current time, in seconds since epoch format.
-  '''
-  date = datetime.datetime.now()
-
-  return time.mktime(date.timetuple())
-
-def myopen(fname,mode='r'):
-  '''
-  Opens a file, checking whether it's gzipped or not, and acts accordingly.
-    fname = name of file to open
-    mode  = mode in which to open
-  '''
-  
-  fname = fname.replace('.gz','') # rm trailing .gz, if any
-  try:
-    f = open(fname,mode)
-  except:
-    try:
-      f = gzip.open(fname+'.gz',mode)
-    except IOError:
-      sys.exit('Could not open file \'' + fname + '\', sorry!')
-
-  return f
-
-def w2file(fname,string):
-  '''
-  Use myopen to open file, write a string to it and then close it.
-    fname  = name of file to write to
-    string = string to write to file
-  '''
-  
-  f = myopen(fname,'w')
-  f.write(string)
-  f.close()
 
 def host_stats(file=None):
   if file == None: sys.exit("bhs.host_stats: Need a file name to process!")
@@ -159,7 +130,7 @@ def host_stats(file=None):
   stat['oth'] = [oth_stat_0,oth_stat_1]
   
   # Return output:
-  nstring = "%12i" % (now())
+  nstring = "%12i" % (S.now())
   cstring = nstring
   for osy in os_list:
     nstring += "%9.0f "  % (stat[osy][0])
@@ -176,9 +147,9 @@ def get_log(url,name):
   '''
 
   if o.verbose:
-    os.system("wget "+url+name)
+    S.cli("wget "+url+name)
   else:
-    os.system("wget -q "+url+name)
+    S.cli("wget -q "+url+name)
 
 def save_log(project,stringa,stringb):
 
@@ -186,25 +157,26 @@ def save_log(project,stringa,stringb):
   if not re.search('\n',stringb): stringb += '\n'
 
   fn = os.environ['HOME']+'/.LOGs/boinc/'+project+'.nhosts.dat'
-  f = myopen(fn,'a')
+  f = FM.myopen(fn,'a')
   f.write(stringa)
   f.close()
 
   fn = os.environ['HOME']+'/.LOGs/boinc/'+project+'.credit.dat'
-  f = myopen(fn,'a')
+  f = FM.myopen(fn,'a')
   f.write(stringb)
   f.close()
 
-def make_plot(fn,type):
+def make_plot(fn,type,png=False):
   '''
-  Generate plot data from raw data.
-    fn   = name of file with raw data.
-    type = whether to get direct values (total), numerical approx. to d/dt (speed) or d2/dt2 (accel).
+  Plot results with Xmgrace, either interactively or saving to a PNG file.
+    fn   = file name of data file
+    type = whether you want raw values ('total') or their (approx. numeric) derivative vs. time ('speed')
+    png  = whether to save to PNG files (True) or not.
   '''
 
   parf = os.environ['HOME']+'/.LOGs/boinc/boinc.par'
 
-  f = myopen(fn,'r')
+  f = FM.myopen(fn,'r')
   lines = f.readlines()
   f.close()
 
@@ -212,7 +184,7 @@ def make_plot(fn,type):
 
   if type == 'total':
     for line in lines:
-      line   = [float(x) for x in line.split()]
+      line = [float(x) for x in line.split()]
 
       tot = 0
       for x in line[1:]:
@@ -250,33 +222,6 @@ def make_plot(fn,type):
 
       oline  = copy.deepcopy(line)
 
-  elif type == 'accel':
-    oline  = [0.0,0.0,0.0,0.0,0.0]
-    odline = copy.deepcopy(oline)
-    
-    for line in lines:
-      line   = [float(x) for x in line.split()]
-      dline  = [line[i]  - oline[i]  for i in range(len(line))]
-      ddline = [dline[i] - odline[i] for i in range(len(line))]
-
-      tot = 0
-      for x in ddline[1:]:
-        tot += x
-    
-      val  = [0.0,0.0,0.0,0.0,0.0]
-      for i in range(1,5):
-        val[i] = 100*ddline[i]/tot
-
-	if val[i] < 0:
-	  val[i] = 0
-	elif val[i] > 100:
-	  val[i] = 100
-
-      out_string += "%8.3f %6.2f %6.2f %6.2f %6.2f\n" % tuple( [(line[0]-t0)/86400 , val[1], val[2], val[3], val[4]] )
-
-      oline  = copy.deepcopy(line)
-      odline = copy.deepcopy(dline)
-
   subtit = title[t][type]
 
   units = ['','k','M','G']
@@ -290,8 +235,16 @@ def make_plot(fn,type):
 
   tit = name[o.project]
 
-  w2file(tmpf,out_string)
-  os.system(xmgr+" -noask -nxy "+tmpf+' -p '+parf+' -pexec \'SUBTITLE "'+subtit+'"\' -pexec \'TITLE "'+tit+'"\'')
+  FM.w2file(tmpf,out_string)
+
+  xtra = ''
+  if o.png:
+    fout = fn.replace('.dat','_'+type+'.png')
+    fout = fout.replace('@','_at_')
+    xtra += '-hardcopy -hdevice PNG -printfile '+fout
+
+  S.cli(xmgr+" -noask -nxy "+tmpf+' -p '+parf+' -pexec \'SUBTITLE "'+subtit+'"\' -pexec \'TITLE "'+tit+'"\' '+xtra)
+
   os.unlink(tmpf)
 
 # Define variables:
@@ -307,11 +260,11 @@ url   = { 'malaria':'http://www.malariacontrol.net/stats/',
              'seti':'http://setiathome.berkeley.edu/stats/' }
 
 title = { 'nhosts':{ 'total':'Total hosts',
-           'speed':'Daily increase in number of hosts' },
+                     'speed':'Daily increase in number of hosts' },
 
           'credit':{ 'total':'Accumulated credit',
-           'speed':'Daily Credit Generation Rate',
-           'accel':'CGR increase per day'} }
+                     'speed':'Daily Credit Generation Rate' }
+	}
 
 if o.project == 'help':
 
@@ -349,18 +302,13 @@ if o.retrieve:
     print 'Finished.'
 
 else:
-  # Plot:
+  # Plot or save PNG
 
   t0   = 1201956633
   tmpf = 'boinc.tmp'
   xmgr = 'xmgrace -barebones -geom 1000x800 -fixed 650 500 '
 
   for type in ['total','speed']:
-    t = 'credit'
-    fn =  os.environ['HOME']+'/.LOGs/boinc/'+name[o.project]+'.'+t+'.dat'
-    make_plot(fn,type)
-
-  for type in ['total','speed']:
-    t = 'nhosts'
-    fn =  os.environ['HOME']+'/.LOGs/boinc/'+name[o.project]+'.'+t+'.dat'
-    make_plot(fn,type)
+    for t in ['credit','nhosts']:
+      fn =  os.environ['HOME']+'/.LOGs/boinc/'+name[o.project]+'.'+t+'.dat'
+      make_plot(fn,type,o.png)
