@@ -1,7 +1,7 @@
 # Grace project file
 #
 version 50121
-page size 650, 500
+page size 800, 600
 page scroll 5%
 page inout 5%
 link page off
@@ -32,23 +32,46 @@ map font 1 to "Times-Italic", "Times-Italic"
 map font 0 to "Times-Roman", "Times-Roman"
 map font 33 to "ZapfChancery-MediumItalic", "ZapfChancery-MediumItalic"
 map font 13 to "ZapfDingbats", "ZapfDingbats"
-map font 35 to "CharterBT-Bold", "CharterBT-Bold"
-map font 36 to "CharterBT-BoldItalic", "CharterBT-BoldItalic"
-map font 37 to "CharterBT-Italic", "CharterBT-Italic"
-map font 38 to "CharterBT-Roman", "CharterBT-Roman"
-map font 39 to "Hershey-Gothic-English", "Hershey-Gothic-English"
-map font 40 to "Hershey-Gothic-German", "Hershey-Gothic-German"
-map font 41 to "Hershey-Gothic-Italian", "Hershey-Gothic-Italian"
-map font 42 to "Hershey-Plain-Duplex", "Hershey-Plain-Duplex"
-map font 43 to "Hershey-Plain-Duplex-Italic", "Hershey-Plain-Duplex-Italic"
-map font 44 to "Hershey-Plain-Triplex", "Hershey-Plain-Triplex"
-map font 45 to "Hershey-Plain-Triplex-Italic", "Hershey-Plain-Triplex-Italic"
-map font 46 to "Hershey-Script-Complex", "Hershey-Script-Complex"
-map font 47 to "Hershey-Script-Simplex", "Hershey-Script-Simplex"
-map font 48 to "Utopia-Bold", "Utopia-Bold"
-map font 49 to "Utopia-BoldItalic", "Utopia-BoldItalic"
-map font 50 to "Utopia-Italic", "Utopia-Italic"
-map font 51 to "Utopia-Regular", "Utopia-Regular"
+map font 35 to "LMRoman10-Bold", "LMRoman10-Bold"
+map font 36 to "LMRoman10-BoldItalic", "LMRoman10-BoldItalic"
+map font 37 to "LMRoman10-BoldOblique", "LMRoman10-BoldOblique"
+map font 38 to "LMRoman10-CapsOblique", "LMRoman10-CapsOblique"
+map font 39 to "LMRoman10-CapsRegular", "LMRoman10-CapsRegular"
+map font 40 to "LMRoman10-Demi", "LMRoman10-Demi"
+map font 41 to "LMRoman10-DemiOblique", "LMRoman10-DemiOblique"
+map font 42 to "LMRoman10-Dunhill", "LMRoman10-Dunhill"
+map font 43 to "LMRoman10-DunhillOblique", "LMRoman10-DunhillOblique"
+map font 44 to "LMRoman10-Italic", "LMRoman10-Italic"
+map font 45 to "LMRoman10-Oblique", "LMRoman10-Oblique"
+map font 46 to "LMRoman10-Regular", "LMRoman10-Regular"
+map font 47 to "LMRoman10-Unslanted", "LMRoman10-Unslanted"
+map font 48 to "LMSans10-Bold", "LMSans10-Bold"
+map font 49 to "LMSans10-BoldOblique", "LMSans10-BoldOblique"
+map font 50 to "LMSans10-DemiCondensed", "LMSans10-DemiCondensed"
+map font 51 to "LMSans10-DemiCondensedOblique", "LMSans10-DemiCondensedOblique"
+map font 52 to "LMSans10-Oblique", "LMSans10-Oblique"
+map font 53 to "LMSans10-Regular", "LMSans10-Regular"
+map font 54 to "LMSansQuotation8-Bold", "LMSansQuotation8-Bold"
+map font 55 to "LMSansQuotation8-BoldOblique", "LMSansQuotation8-BoldOblique"
+map font 56 to "LMSansQuotation8-Oblique", "LMSansQuotation8-Oblique"
+map font 57 to "LMSansQuotation8-Regular", "LMSansQuotation8-Regular"
+map font 58 to "LMTypewriter10-CapsOblique", "LMTypewriter10-CapsOblique"
+map font 59 to "LMTypewriter10-CapsRegular", "LMTypewriter10-CapsRegular"
+map font 60 to "LMTypewriter10-Dark", "LMTypewriter10-Dark"
+map font 61 to "LMTypewriter10-DarkOblique", "LMTypewriter10-DarkOblique"
+map font 62 to "LMTypewriter10-Italic", "LMTypewriter10-Italic"
+map font 63 to "LMTypewriter10-Light", "LMTypewriter10-Light"
+map font 64 to "LMTypewriter10-LightCondensed", "LMTypewriter10-LightCondensed"
+map font 65 to "LMTypewriter10-LightCondensedOblique", "LMTypewriter10-LightCondensedOblique"
+map font 66 to "LMTypewriter10-LightOblique", "LMTypewriter10-LightOblique"
+map font 67 to "LMTypewriter10-Oblique", "LMTypewriter10-Oblique"
+map font 68 to "LMTypewriter10-Regular", "LMTypewriter10-Regular"
+map font 69 to "LMTypewriterVarWd10-Dark", "LMTypewriterVarWd10-Dark"
+map font 70 to "LMTypewriterVarWd10-DarkOblique", "LMTypewriterVarWd10-DarkOblique"
+map font 71 to "LMTypewriterVarWd10-Light", "LMTypewriterVarWd10-Light"
+map font 72 to "LMTypewriterVarWd10-LightOblique", "LMTypewriterVarWd10-LightOblique"
+map font 73 to "LMTypewriterVarWd10-Oblique", "LMTypewriterVarWd10-Oblique"
+map font 74 to "LMTypewriterVarWd10-Regular", "LMTypewriterVarWd10-Regular"
 map color 0 to (255, 255, 255), "white"
 map color 1 to (0, 0, 0), "black"
 map color 2 to (255, 0, 0), "red"
@@ -84,7 +107,7 @@ timestamp color 1
 timestamp rot 0
 timestamp font 0
 timestamp char size 1.000000
-timestamp def "Sat May 10 23:49:13 2008"
+timestamp def "Tue Apr 29 12:01:25 2008"
 r0 off
 link r0 to g0
 r0 type above
@@ -131,15 +154,15 @@ g0 fixedpoint xy 0.000000, 0.000000
 g0 fixedpoint format general general
 g0 fixedpoint prec 6, 6
 with g0
-    world 0, 0, 150, 100
+    world 0, 0, 118, 100
     stack world 0, 0, 0, 0
     znorm 1
     view 0.088315, 0.076271, 1.240678, 0.895380
-    title "MalariaControl"
+    title "QMC@home"
     title font 0
     title size 1.500000
     title color 1
-    subtitle " Accumulated credit: 251 M"
+    subtitle " Accumulated credit: 967 M"
     subtitle font 0
     subtitle size 1.000000
     subtitle color 1
@@ -162,7 +185,7 @@ with g0
     xaxis  label color 1
     xaxis  label place normal
     xaxis  tick on
-    xaxis  tick major 10
+    xaxis  tick major 5
     xaxis  tick minor ticks 1
     xaxis  tick default 6
     xaxis  tick place rounded true
@@ -197,7 +220,16 @@ with g0
     xaxis  ticklabel font 0
     xaxis  ticklabel color 1
     xaxis  tick place both
-    xaxis  tick spec type none
+    xaxis  tick spec type both
+    xaxis  tick spec 4
+    xaxis  tick major 0, 26
+    xaxis  ticklabel 0, "Mar"
+    xaxis  tick major 1, 57
+    xaxis  ticklabel 1, "Apr"
+    xaxis  tick major 2, 87
+    xaxis  ticklabel 2, "May"
+    xaxis  tick major 3, 118
+    xaxis  ticklabel 3, "Jun"
     yaxis  on
     yaxis  type zero false
     yaxis  offset 0.000000 , 0.000000
@@ -278,9 +310,9 @@ with g0
     s0 type xy
     s0 symbol 1
     s0 symbol size 0.490000
-    s0 symbol color 1
+    s0 symbol color 2
     s0 symbol pattern 1
-    s0 symbol fill color 1
+    s0 symbol fill color 2
     s0 symbol fill pattern 0
     s0 symbol linewidth 1.0
     s0 symbol linestyle 1
@@ -290,7 +322,7 @@ with g0
     s0 line type 1
     s0 line linestyle 3
     s0 line linewidth 1.0
-    s0 line color 1
+    s0 line color 2
     s0 line pattern 1
     s0 baseline type 0
     s0 baseline off
@@ -312,7 +344,7 @@ with g0
     s0 avalue offset 0.000000 , 0.000000
     s0 errorbar on
     s0 errorbar place both
-    s0 errorbar color 1
+    s0 errorbar color 2
     s0 errorbar pattern 1
     s0 errorbar size 1.000000
     s0 errorbar linewidth 1.0
@@ -376,9 +408,9 @@ with g0
     s2 type xy
     s2 symbol 1
     s2 symbol size 0.490000
-    s2 symbol color 2
+    s2 symbol color 4
     s2 symbol pattern 1
-    s2 symbol fill color 2
+    s2 symbol fill color 4
     s2 symbol fill pattern 0
     s2 symbol linewidth 1.0
     s2 symbol linestyle 1
@@ -388,7 +420,7 @@ with g0
     s2 line type 1
     s2 line linestyle 3
     s2 line linewidth 1.0
-    s2 line color 2
+    s2 line color 4
     s2 line pattern 1
     s2 baseline type 0
     s2 baseline off
@@ -410,7 +442,7 @@ with g0
     s2 avalue offset 0.000000 , 0.000000
     s2 errorbar on
     s2 errorbar place both
-    s2 errorbar color 2
+    s2 errorbar color 4
     s2 errorbar pattern 1
     s2 errorbar size 1.000000
     s2 errorbar linewidth 1.0
@@ -420,14 +452,14 @@ with g0
     s2 errorbar riser clip off
     s2 errorbar riser clip length 0.100000
     s2 comment "-"
-    s2 legend  "BSD"
+    s2 legend  "Darwin (Mac OSX)"
     s3 hidden false
     s3 type xy
     s3 symbol 1
     s3 symbol size 0.490000
-    s3 symbol color 4
+    s3 symbol color 13
     s3 symbol pattern 1
-    s3 symbol fill color 4
+    s3 symbol fill color 13
     s3 symbol fill pattern 0
     s3 symbol linewidth 1.0
     s3 symbol linestyle 1
@@ -437,7 +469,7 @@ with g0
     s3 line type 1
     s3 line linestyle 3
     s3 line linewidth 1.0
-    s3 line color 4
+    s3 line color 13
     s3 line pattern 1
     s3 baseline type 0
     s3 baseline off
@@ -459,7 +491,7 @@ with g0
     s3 avalue offset 0.000000 , 0.000000
     s3 errorbar on
     s3 errorbar place both
-    s3 errorbar color 4
+    s3 errorbar color 13
     s3 errorbar pattern 1
     s3 errorbar size 1.000000
     s3 errorbar linewidth 1.0
@@ -469,4 +501,4 @@ with g0
     s3 errorbar riser clip off
     s3 errorbar riser clip length 0.100000
     s3 comment "-"
-    s3 legend  "Darwin (Mac OS X)"
+    s3 legend  "Other"
