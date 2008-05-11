@@ -40,8 +40,9 @@ import os
 import optparse
 import copy
 
-sys.path.append(os.environ['HOME']+'/WCs/MyTools/PythonModules')
+sys.path.append(os.environ['HOME']+'/WCs/PublishedSoftware/PythonModules')
 
+import DataManipulation as DM
 import FileManipulation as FM
 import System as S
 
@@ -66,6 +67,11 @@ parser.add_option("-r", "--retrieve",
 
 parser.add_option("-v", "--verbose",
                   help="Be verbose. Default: don't be.",
+		  action="store_true",
+		  default=False)
+
+parser.add_option("-a", "--analize",
+                  help="Instead of plotting, guess which OS will overtake Windows, and when.",
 		  action="store_true",
 		  default=False)
 
@@ -141,15 +147,16 @@ def host_stats(file=None):
 
   return nstring,cstring
 
-def get_log(url,name):
+def get_log(url):
   '''
   Retrieve the log file from the URL.
   '''
 
   if o.verbose:
-    S.cli("wget "+url+name)
+    S.cli('wget '+url+' -O host.gz')
+
   else:
-    S.cli("wget -q "+url+name)
+    S.cli("wget -q "+url+' -O host.gz')
 
 def save_log(project,stringa,stringb):
 
@@ -166,6 +173,12 @@ def save_log(project,stringa,stringb):
   f.write(stringb)
   f.close()
 
+  stringc = "%-15s logged at %10s on %1s\n" % (project,S.hour(),S.day())
+  fn = os.environ['HOME']+'/.LOGs/boinc/entries.log'
+  f = FM.myopen(fn,'a')
+  f.write(stringc)
+  f.close()
+
 def make_plot(fn,type,png=False):
   '''
   Plot results with Xmgrace, either interactively or saving to a PNG file.
@@ -176,51 +189,7 @@ def make_plot(fn,type,png=False):
 
   parf = os.environ['HOME']+'/.LOGs/boinc/boinc.par'
 
-  f = FM.myopen(fn,'r')
-  lines = f.readlines()
-  f.close()
-
-  out_string = ''
-
-  if type == 'total':
-    for line in lines:
-      line = [float(x) for x in line.split()]
-
-      tot = 0
-      for x in line[1:]:
-        tot += x
-
-      if tot != 0:
-        val = [0.0,0.0,0.0,0.0,0.0]
-        for i in range(1,5):
-          val[i] = 100*line[i]/tot
-
-        out_string += "%8.3f %6.2f %6.2f %6.2f %6.2f\n" % tuple( [(line[0]-t0)/86400 , val[1], val[2], val[3], val[4]] )
-
-  elif type == 'speed':
-    oline  = [0.0,0.0,0.0,0.0,0.0]
-
-    for line in lines:
-      line   = [float(x) for x in line.split()]
-      dline  = [line[i]  - oline[i]  for i in range(len(line))]
-
-      tot = 0
-      for x in dline[1:]:
-        tot += x
-
-      if tot != 0:
-        val  = [0.0,0.0,0.0,0.0,0.0]
-        for i in range(1,5):
-          val[i] = 100*dline[i]/tot
- 
-          if val[i] < 0:
-	    val[i] = 0
-	  elif val[i] > 100:
-	    val[i] = 100
-
-        out_string += "%8.3f %6.2f %6.2f %6.2f %6.2f\n" % tuple( [(line[0]-t0)/86400 , val[1], val[2], val[3], val[4]] )
-
-      oline  = copy.deepcopy(line)
+  [out_string,tot] = proc_data(fn,type)
 
   subtit = title[t][type]
 
@@ -247,17 +216,124 @@ def make_plot(fn,type,png=False):
 
   os.unlink(tmpf)
 
-# Define variables:
+def proc_data(fn,type):
+  '''
+  Process data and generate output string to plot or analize.
+  '''
 
-logf  = 'host.gz'
+  f = FM.myopen(fn,'r')
+  lines = f.readlines()
+  f.close()
 
-name  = { 'malaria':'MalariaControl',
-              'qmc':'QMC@home',
-             'seti':'SETI@home' }
+  out_string = ''
 
-url   = { 'malaria':'http://www.malariacontrol.net/stats/',
-              'qmc':'http://qah.uni-muenster.de/stats/',
-             'seti':'http://setiathome.berkeley.edu/stats/' }
+  if type == 'total':
+    for line in lines:
+      line = [float(x) for x in line.split()]
+
+      tot = 0
+      for x in line[1:]:
+        tot += x
+
+      if tot != 0:
+        val = [0.0,0.0,0.0,0.0,0.0]
+        for i in range(1,5):
+          val[i] = 100*line[i]/tot
+
+        out_string += "%9.3f %8.4f %8.4f %8.4f %8.4f\n" % tuple( [(line[0]-t0)/86400 , val[1], val[2], val[3], val[4]] )
+
+  elif type == 'speed':
+    oline  = [0.0,0.0,0.0,0.0,0.0]
+
+    for line in lines:
+      line   = [float(x) for x in line.split()]
+      dline  = [line[i]  - oline[i]  for i in range(len(line))]
+
+      tot = 0
+      for x in dline[1:]:
+        tot += x
+
+      if tot != 0:
+        val  = [0.0,0.0,0.0,0.0,0.0]
+        for i in range(1,5):
+          val[i] = 100*dline[i]/tot
+ 
+          if val[i] < 0:
+	    val[i] = 0
+	  elif val[i] > 100:
+	    val[i] = 100
+
+        out_string += "%9.3f %8.4f %8.4f %8.4f %8.4f\n" % tuple( [(line[0]-t0)/86400 , val[1], val[2], val[3], val[4]] )
+
+      oline  = copy.deepcopy(line)
+
+  return [out_string,tot]
+
+def make_ana(fn,type):
+  '''
+  Analize data.
+  '''
+
+  [out_string,tot] = proc_data(fn,type)
+
+  tmpf2 = 'boinc.tmp2'
+
+  d = [ [0,0], [0,0], [0,0], [0,0] ]
+
+  for ind in [0,1,2]:
+    col = ind + 2
+    S.cli('echo "'+out_string+'" | awk \'/./{print $1,$'+str(col)+'}\' > '+tmpf2)
+    out = S.cli('xmfit '+tmpf2+' -f "y = a0 + a1*x" | grep "a. ="',True)
+    for line in out:
+      al = line.split()
+      if 'a0' in line:
+        d[ind][0] = float(al[2])
+      elif 'a1' in line:
+        d[ind][1] = float(al[2])
+
+  os.unlink(tmpf2)
+ 
+  mincatch = 1000
+  minidx   = 0
+  for ind in [1,2]:
+    catch = (d[0][0] - d[ind][0])/(d[ind][1] - d[0][1])
+    catch = catch/365
+    if catch > 0 and catch < mincatch:
+      mincatch = catch
+      minidx   = ind
+
+  so = ['Linux','Mac','Others']
+
+  print "%1s will catch up with Windows in %.1f years from now!\n" % (so[minidx],mincatch)
+
+########################################################
+#                                                      #
+#  Data to supply by user. Project lists and so forth  #
+#                                                      #
+########################################################
+
+name  = {                              # Mcredit | kHosts | kDCGR  | DINH
+          'malaria':'MalariaControl',  #   239   |   55   |   1010 |   146
+              'qmc':'QMC@home',        #   967   |   61   |   3497 |   163
+	'predictor':'Predictor@Home ', #   459   |  145   |        |
+         'einstein':'Einstein@home',   #  6582   |  518   |        |
+          'rosetta':'Rosetta@home',    #  3765   |  542   |        |
+             'seti':'SETI@home',       # 26000   | 1876   | 445000 | 11000
+	}
+
+url   = { 'malaria':'http://www.malariacontrol.net/stats/host.gz',
+              'qmc':'http://qah.uni-muenster.de/stats/host.gz',
+             'seti':'http://setiathome.berkeley.edu/stats/host.gz',
+          'rosetta':'http://boinc.bakerlab.org/rosetta/stats/host.gz',
+	 'einstein':'http://einstein.phys.uwm.edu/stats/host_id.gz',
+        'predictor':'http://predictor.chem.lsa.umich.edu/stats/host_id.gz',
+	}
+
+########################################################
+#                                                      #
+#           End data to supply by user                 #
+#                                                      #
+########################################################
 
 title = { 'nhosts':{ 'total':'Total hosts',
                      'speed':'Daily increase in number of hosts' },
@@ -271,22 +347,23 @@ if o.project == 'help':
   shelp = 'Currently available projects:\n'
 
   for p,pu in url.iteritems():
-    shelp += '  %-10s (%-1s)\n' % (p,pu)
+    shelp += '  %-10s %-1s\n' % (p,pu)
 
   sys.exit(shelp)
 
+# Actualy run:
 if o.retrieve:
   # Retrieve, process, save, rm:
 
   if (o.verbose):
     print 'Retrieving stats file...'
 
-  get_log(url[o.project],logf)
+  get_log(url[o.project])
 
   if (o.verbose):
     print 'Processing retrieved stats file...'
 
-  (nstring,cstring) = host_stats(logf)
+  (nstring,cstring) = host_stats('host.gz')
 
   if (o.verbose):
     print 'Saving log...'
@@ -296,10 +373,78 @@ if o.retrieve:
   if (o.verbose):
     print 'Deleting hosts.gz...'
 
-  os.unlink(logf)
+  os.unlink('host.gz')
 
   if (o.verbose):
     print 'Finished.'
+
+elif o.analize:
+  # Analize:
+
+  t0   = 1201956633
+  type = 'total'
+  
+  for t in ['nhosts']:
+    print 'According to '+t+':'
+    fn =  os.environ['HOME']+'/.LOGs/boinc/'+name[o.project]+'.'+t+'.dat'
+    s = proc_data(fn,type)
+
+    ars   = s[0].split('\n')
+    begin = float(ars[0].split()[0])
+    end   = float(ars[-2].split()[0])
+
+    params = []
+    for i in [1,2,3]:
+      data = ''
+      ars = s[0].split('\n')
+      for line in ars:
+        if line != '':
+	  aline = line.split()
+          data += aline[0]+' '+aline[i]+'\n'
+
+      [par,r,x0] = DM.xmgrace_fit(data,'y = a0 + a1*x + a2*x^2')
+      params.append(par[0:3])
+
+    so = ['Linux','Mac']
+    for i in [1,2]:
+      txt  = 'clear all;\n'
+      txt += 'function rval = f1(x)\n'
+      txt += '  A0 = '+params[0][0]+';\n'
+      txt += '  A1 = '+params[0][1]+';\n'
+      txt += '  A2 = '+params[0][2]+';\n'
+      txt += '  rval = A0 + A1.*x + A2*x^2 ;\n'
+      txt += 'endfunction\n'
+    
+      txt += 'function rval = f2(x)\n'
+      txt += '  B0 = '+params[i][0]+';\n'
+      txt += '  B1 = '+params[i][1]+';\n'
+      txt += '  B2 = '+params[i][2]+';\n'
+      txt += '  rval = B0 + B1*x + B2*x^2;\n'
+      txt += 'endfunction\n'
+
+      txt += 'function rval = cross(x)\n'
+      txt += '  rval = f1(x) - f2(x);\n'
+      txt += 'endfunction\n'
+
+      txt += '[xx,info] = fsolve("cross",1000);\n'
+      txt += 'time  = xx/1\n'
+      txt += 'error = info\n'
+      txt += 'perc  = f1(time)\n'
+
+      FM.w2file('octave.tmp',txt)
+      out = S.cli('/usr/bin/octave -qf octave.tmp',True)
+      os.unlink('octave.tmp')
+      
+      # Will ever cross? (error):
+      error = float(out[1].split()[2])
+      perc  = float(out[2].split()[2])
+      if (abs(error) > 0.01 or perc < 0 or perc > 100):
+        print "%-6s will never cross Windows!" % (so[i-1])
+
+      else:
+        time = float(out[0].split()[2])
+	frac = 100*(end-begin)/time
+        print "%-6s will cross Windows in %6.1f days (%7.2f %% confidence)" % (so[i-1],time,frac)
 
 else:
   # Plot or save PNG
