@@ -247,7 +247,8 @@ def proc_data(fn,type):
 
     for line in lines:
       line   = [float(x) for x in line.split()]
-      dline  = [line[i]  - oline[i]  for i in range(len(line))]
+      dt     = (line[0] - oline[0])/86400
+      dline  = [(line[i]  - oline[i])/dt for i in range(len(line))]
 
       tot = 0
       for x in dline[1:]:
@@ -260,6 +261,7 @@ def proc_data(fn,type):
  
           if val[i] < 0:
 	    val[i] = 0
+
 	  elif val[i] > 100:
 	    val[i] = 100
 
@@ -269,42 +271,88 @@ def proc_data(fn,type):
 
   return [out_string,tot]
 
-def make_ana(fn,type):
+def fit_n_cross(fn,type='total',order=1):
   '''
-  Analize data.
+  Use polynomial of N-order to fit curves, and then find crossing.
+    fn    = name of file to get info from
+    type  = type of data
+    order = N of N-order polynomial
   '''
 
-  [out_string,tot] = proc_data(fn,type)
+  s = proc_data(fn,type)
 
-  tmpf2 = 'boinc.tmp2'
+  ars   = s[0].split('\n')
+  begin = float(ars[0].split()[0])
+  end   = float(ars[-2].split()[0])
 
-  d = [ [0,0], [0,0], [0,0], [0,0] ]
+  params = []
+  rpar   = []
 
-  for ind in [0,1,2]:
-    col = ind + 2
-    S.cli('echo "'+out_string+'" | awk \'/./{print $1,$'+str(col)+'}\' > '+tmpf2)
-    out = S.cli('xmfit '+tmpf2+' -f "y = a0 + a1*x" | grep "a. ="',True)
-    for line in out:
-      al = line.split()
-      if 'a0' in line:
-        d[ind][0] = float(al[2])
-      elif 'a1' in line:
-        d[ind][1] = float(al[2])
+  for i in [1,2,3]:
+    data = ''
+    for line in ars:
+      if line != '':
+        aline = line.split()
+        data += aline[0]+' '+aline[i]+'\n'
 
-  os.unlink(tmpf2)
- 
-  mincatch = 1000
-  minidx   = 0
-  for ind in [1,2]:
-    catch = (d[0][0] - d[ind][0])/(d[ind][1] - d[0][1])
-    catch = catch/365
-    if catch > 0 and catch < mincatch:
-      mincatch = catch
-      minidx   = ind
 
-  so = ['Linux','Mac','Others']
+    form = 'y = a0 '
+    for d in range(order):
+      n = d + 1
+      form += ' + a'+str(n)+'*x^'+str(n)+' '
 
-  print "%1s will catch up with Windows in %.1f years from now!\n" % (so[minidx],mincatch)
+    form = form.replace('^1 ',' ')
+
+    [par,r,x0] = DM.xmgrace_fit(data,form)
+    params.append(par[0:order+1])
+    rpar.append(r)
+
+  so = ['Linux','Mac']
+  for i in [1,2]:
+    txt  = 'clear all;\n'
+    txt += 'function rval = f1(x)\n'
+
+    for d in range(order+1):
+      txt += '  A'+str(d)+' = '+params[0][d]+';\n'
+
+    t = form.replace('a','A')
+    t = t.replace('y =','')
+    txt += '  rval = '+t+';\n'
+    txt += 'endfunction\n'
+    
+    txt += 'function rval = f2(x)\n'
+
+    for d in range(order+1):
+      txt += '  B'+str(d)+' = '+params[i][d]+';\n'
+
+    t = form.replace('a','B')
+    t = t.replace('y =','')
+    txt += '  rval = '+t+';\n'
+    txt += 'endfunction\n'
+
+    txt += 'function rval = cross(x)\n'
+    txt += '  rval = f1(x) - f2(x);\n'
+    txt += 'endfunction\n'
+
+    txt += '[xx,info] = fsolve("cross",1000);\n'
+    txt += 'time  = xx/1\n'
+    txt += 'error = info\n'
+    txt += 'perc  = f1(time)\n'
+
+    FM.w2file('octave.tmp',txt)
+    out = S.cli('/usr/bin/octave -q octave.tmp',True)
+    os.unlink('octave.tmp')
+
+    # Will ever cross? (error):
+    error = float(out[1].split()[2])
+    perc  = float(out[2].split()[2])
+    if (abs(error) > 0.01 or perc < 0 or perc > 100):
+      print "%-6s will never cross Windows!" % (so[i-1])
+
+    else:
+      time = float(out[0].split()[2])
+      frac = 100*(end-begin)/time
+      print "%-6s will cross Windows in %8.1f days (R = %8.6f | C = %5.1f%%)" % (so[i-1],time,rpar[i-1],frac)
 
 ########################################################
 #                                                      #
@@ -313,12 +361,12 @@ def make_ana(fn,type):
 ########################################################
 
 name  = {                              # Mcredit | kHosts | kDCGR  | DINH
-          'malaria':'MalariaControl',  #   239   |   55   |   1010 |   146
-              'qmc':'QMC@home',        #   967   |   61   |   3497 |   163
-	'predictor':'Predictor@Home ', #   459   |  145   |        |
-         'einstein':'Einstein@home',   #  6582   |  518   |        |
-          'rosetta':'Rosetta@home',    #  3765   |  542   |        |
-             'seti':'SETI@home',       # 26000   | 1876   | 445000 | 11000
+          'malaria':'MalariaControl',  #   248   |   56   |    860 |  101
+              'qmc':'QMC@home',        #   982   |   61   |   1819 |   52
+	'predictor':'Predictor@Home ', #   460   |  146   |     49 |   34
+         'einstein':'Einstein@home',   #  6772   |  526   |  15000 |  661
+          'rosetta':'Rosetta@home',    #  3843   |  548   |   7232 |  590
+             'seti':'SETI@home',       # 27000   | 1911   |  51000 | 1809
 	}
 
 url   = { 'malaria':'http://www.malariacontrol.net/stats/host.gz',
@@ -387,64 +435,9 @@ elif o.analize:
   for t in ['nhosts']:
     print 'According to '+t+':'
     fn =  os.environ['HOME']+'/.LOGs/boinc/'+name[o.project]+'.'+t+'.dat'
-    s = proc_data(fn,type)
-
-    ars   = s[0].split('\n')
-    begin = float(ars[0].split()[0])
-    end   = float(ars[-2].split()[0])
-
-    params = []
-    for i in [1,2,3]:
-      data = ''
-      ars = s[0].split('\n')
-      for line in ars:
-        if line != '':
-	  aline = line.split()
-          data += aline[0]+' '+aline[i]+'\n'
-
-      [par,r,x0] = DM.xmgrace_fit(data,'y = a0 + a1*x + a2*x^2')
-      params.append(par[0:3])
-
-    so = ['Linux','Mac']
-    for i in [1,2]:
-      txt  = 'clear all;\n'
-      txt += 'function rval = f1(x)\n'
-      txt += '  A0 = '+params[0][0]+';\n'
-      txt += '  A1 = '+params[0][1]+';\n'
-      txt += '  A2 = '+params[0][2]+';\n'
-      txt += '  rval = A0 + A1.*x + A2*x^2 ;\n'
-      txt += 'endfunction\n'
-    
-      txt += 'function rval = f2(x)\n'
-      txt += '  B0 = '+params[i][0]+';\n'
-      txt += '  B1 = '+params[i][1]+';\n'
-      txt += '  B2 = '+params[i][2]+';\n'
-      txt += '  rval = B0 + B1*x + B2*x^2;\n'
-      txt += 'endfunction\n'
-
-      txt += 'function rval = cross(x)\n'
-      txt += '  rval = f1(x) - f2(x);\n'
-      txt += 'endfunction\n'
-
-      txt += '[xx,info] = fsolve("cross",1000);\n'
-      txt += 'time  = xx/1\n'
-      txt += 'error = info\n'
-      txt += 'perc  = f1(time)\n'
-
-      FM.w2file('octave.tmp',txt)
-      out = S.cli('/usr/bin/octave -qf octave.tmp',True)
-      os.unlink('octave.tmp')
-      
-      # Will ever cross? (error):
-      error = float(out[1].split()[2])
-      perc  = float(out[2].split()[2])
-      if (abs(error) > 0.01 or perc < 0 or perc > 100):
-        print "%-6s will never cross Windows!" % (so[i-1])
-
-      else:
-        time = float(out[0].split()[2])
-	frac = 100*(end-begin)/time
-        print "%-6s will cross Windows in %6.1f days (%7.2f %% confidence)" % (so[i-1],time,frac)
+    for order in [1,2,3]: # order of polynomial fit
+      print "\nWith a polynomial of order "+str(order)+':'
+      fit_n_cross(fn,type,order)
 
 else:
   # Plot or save PNG
