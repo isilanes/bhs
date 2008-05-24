@@ -30,7 +30,7 @@ For help, type:
 
 VERSION
 
-svn_revision = r176 (2008-02-22 18:22:35)
+svn_revision = r7 (2008-05-12 22:20:32)
 
 '''
 
@@ -72,6 +72,11 @@ parser.add_option("-v", "--verbose",
 
 parser.add_option("-a", "--analize",
                   help="Instead of plotting, guess which OS will overtake Windows, and when.",
+		  action="store_true",
+		  default=False)
+
+parser.add_option("-T", "--total",
+                  help="Plot total figures, instead of percents. Default: percents.",
 		  action="store_true",
 		  default=False)
 
@@ -187,9 +192,8 @@ def make_plot(fn,type,png=False):
     png  = whether to save to PNG files (True) or not.
   '''
 
-  parf = os.environ['HOME']+'/.LOGs/boinc/boinc.par'
 
-  [out_string,tot] = proc_data(fn,type)
+  [out_string,tot,world] = proc_data(fn,type)
 
   subtit = title[t][type]
 
@@ -206,13 +210,31 @@ def make_plot(fn,type,png=False):
 
   FM.w2file(tmpf,out_string)
 
-  xtra = ''
+  xtra = ' '
   if o.png:
     fout = fn.replace('.dat','_'+type+'.png')
     fout = fout.replace('@','_at_')
     xtra += '-hardcopy -hdevice PNG -printfile '+fout
 
-  S.cli(xmgr+" -noask -nxy "+tmpf+' -p '+parf+' -pexec \'SUBTITLE "'+subtit+'"\' -pexec \'TITLE "'+tit+'"\' '+xtra)
+  if o.total:
+    parf = os.environ['HOME']+'/.LOGs/boinc/boinc_total.par'
+
+    ticks = []
+    for w in world:
+      w = "%i" % (int(w))
+      n = len(w)-3
+      w = w[0:2]
+      w = int(w) + 1
+      ticks.append(w*10**n)
+
+    world = [10*x for x in ticks]
+    str1 = xmgr+" -noask -nxy "+tmpf+' -p '+parf+' -pexec \'SUBTITLE "'+subtit+'"\' -pexec \'TITLE "'+tit+'"\' '
+    S.cli(str1+' -pexec "yaxis  tick major '+str(ticks[1])+'" -world 0 0 '+str(world[0])+' '+str(world[1])+xtra)
+
+  else:
+    parf = os.environ['HOME']+'/.LOGs/boinc/boinc.par'
+    str1 = xmgr+' -noask -nxy '+tmpf+' -p '+parf+' -pexec \'SUBTITLE "'+subtit+'"\' -pexec \'TITLE "'+tit+'"\' '
+    S.cli(str1+xtra)
 
   os.unlink(tmpf)
 
@@ -227,6 +249,9 @@ def proc_data(fn,type):
 
   out_string = ''
 
+  max_x = 0
+  max_y = 0
+
   if type == 'total':
     for line in lines:
       line = [float(x) for x in line.split()]
@@ -234,13 +259,20 @@ def proc_data(fn,type):
       tot = 0
       for x in line[1:]:
         tot += x
+	if x > max_y:
+          max_y = x 
 
-      if tot != 0:
-        val = [0.0,0.0,0.0,0.0,0.0]
-        for i in range(1,5):
-          val[i] = 100*line[i]/tot
+      if o.total:
+        val = line
 
-        out_string += "%9.3f %8.4f %8.4f %8.4f %8.4f\n" % tuple( [(line[0]-t0)/86400 , val[1], val[2], val[3], val[4]] )
+      else:
+        if tot != 0:
+          val = [0.0,0.0,0.0,0.0,0.0]
+          for i in range(1,5):
+            val[i] = 100*line[i]/tot
+
+      max_x = (line[0]-t0)/86400
+      out_string += "%9.3f %8.4f %8.4f %8.4f %8.4f\n" % tuple( [max_x , val[1], val[2], val[3], val[4]] )
 
   elif type == 'speed':
     oline  = [0.0,0.0,0.0,0.0,0.0]
@@ -253,23 +285,30 @@ def proc_data(fn,type):
       tot = 0
       for x in dline[1:]:
         tot += x
+	if x > max_y:
+          max_y = x
 
-      if tot != 0:
-        val  = [0.0,0.0,0.0,0.0,0.0]
-        for i in range(1,5):
-          val[i] = 100*dline[i]/tot
+      if o.total:
+        val = dline
+
+      else:
+        if tot != 0:
+          val  = [0.0,0.0,0.0,0.0,0.0]
+          for i in range(1,5):
+            val[i] = 100*dline[i]/tot
  
-          if val[i] < 0:
-	    val[i] = 0
+            if val[i] < 0:
+	      val[i] = 0
 
-	  elif val[i] > 100:
-	    val[i] = 100
+	    elif val[i] > 100:
+	      val[i] = 100
 
-        out_string += "%9.3f %8.4f %8.4f %8.4f %8.4f\n" % tuple( [(line[0]-t0)/86400 , val[1], val[2], val[3], val[4]] )
+      max_x = (line[0]-t0)/86400
+      out_string += "%9.3f %8.4f %8.4f %8.4f %8.4f\n" % tuple( [(line[0]-t0)/86400 , val[1], val[2], val[3], val[4]] )
 
       oline  = copy.deepcopy(line)
-
-  return [out_string,tot]
+  
+  return [out_string,tot,[max_x,max_y]]
 
 def fit_n_cross(fn,type='total',order=1):
   '''
@@ -344,13 +383,13 @@ def fit_n_cross(fn,type='total',order=1):
     os.unlink('octave.tmp')
 
     # Will ever cross? (error):
+    time  = float(out[0].split()[2])
     error = float(out[1].split()[2])
     perc  = float(out[2].split()[2])
-    if (abs(error) > 0.01 or perc < 0 or perc > 100):
+    if (abs(error) > 0.01 or perc < 0 or perc > 100 or time < 0):
       print "%-6s will never cross Windows!" % (so[i-1])
 
     else:
-      time = float(out[0].split()[2])
       frac = 100*(end-begin)/time
       print "%-6s will cross Windows in %8.1f days (R = %8.6f | C = %5.1f%%)" % (so[i-1],time,rpar[i-1],frac)
 
@@ -360,13 +399,13 @@ def fit_n_cross(fn,type='total',order=1):
 #                                                      #
 ########################################################
 
-name  = {                              # Mcredit | kHosts | kDCGR  | DINH
-          'malaria':'MalariaControl',  #   248   |   56   |    860 |  101
-              'qmc':'QMC@home',        #   982   |   61   |   1819 |   52
-	'predictor':'Predictor@Home ', #   460   |  146   |     49 |   34
-         'einstein':'Einstein@home',   #  6772   |  526   |  15000 |  661
-          'rosetta':'Rosetta@home',    #  3843   |  548   |   7232 |  590
-             'seti':'SETI@home',       # 27000   | 1911   |  51000 | 1809
+name  = {                             # Mcredit | kHosts | kDCGR  | DINH
+          'malaria':'MalariaControl', #   248   |   56   |    860 |  101
+              'qmc':'QMC@home',       #   982   |   61   |   1819 |   52
+	'predictor':'Predictor@Home', #   460   |  146   |     49 |   34
+         'einstein':'Einstein@home',  #  6772   |  526   |  15000 |  661
+          'rosetta':'Rosetta@home',   #  3843   |  548   |   7232 |  590
+             'seti':'SETI@home',      # 27000   | 1911   |  51000 | 1809
 	}
 
 url   = { 'malaria':'http://www.malariacontrol.net/stats/host.gz',
