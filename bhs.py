@@ -214,21 +214,36 @@ def make_plot(fn,type,png=False):
   if o.png:
     fout = fn.replace('.dat','_'+type+'.png')
     fout = fout.replace('@','_at_')
-    xtra += '-hardcopy -hdevice PNG -printfile '+fout
+    xtra += '-hardcopy -hdevice PNG -pexec \'page size 960, 720\' -printfile '+fout
 
   if o.total:
     parf = os.environ['HOME']+'/.LOGs/boinc/boinc_total.par'
 
     ticks = []
+    scale = []
     for w in world:
-      w = "%i" % (int(w))
-      n = len(w)-3
-      w = w[0:2]
-      w = int(w) + 1
-      ticks.append(w*10**n)
+      n = 0
+      while (w > 10000):
+        w  = w/1000
+	n += 3
+      w = int(w)/10 + 1
+      ticks.append(w)
+      scale.append(10**n)
+
+    # Rescale data:
+    out_string = ''
+    a = FM.file2array(tmpf)
+    for line in a:
+      aline = line.split()
+      nline = "%10.5f " % (float(aline[0])/scale[0])
+      for e in aline[1:]:
+        nline += "%.6f " % (float(e)/scale[1])
+      out_string += nline+'\n'
+    FM.w2file(tmpf,out_string)
 
     world = [10*x for x in ticks]
-    str1 = xmgr+" -noask -nxy "+tmpf+' -p '+parf+' -pexec \'SUBTITLE "'+subtit+'"\' -pexec \'TITLE "'+tit+'"\' '
+    yscale = "x 10\S%s" % (len(str(scale[1]))-1)
+    str1 = xmgr+" -noask -nxy "+tmpf+' -p '+parf+' -pexec \'SUBTITLE "'+subtit+'"\' -pexec \'TITLE "'+tit+'"\' -pexec \'yaxis  label "'+yscale+'"\' '
     S.cli(str1+' -pexec "yaxis  tick major '+str(ticks[1])+'" -world 0 0 '+str(world[0])+' '+str(world[1])+xtra)
 
   else:
@@ -399,13 +414,16 @@ def fit_n_cross(fn,type='total',order=1):
 #                                                      #
 ########################################################
 
-name  = {                             # Mcredit | kHosts | kDCGR  | DINH
-          'malaria':'MalariaControl', #   248   |   56   |    860 |  101
-              'qmc':'QMC@home',       #   982   |   61   |   1819 |   52
-	'predictor':'Predictor@Home', #   460   |  146   |     49 |   34
-         'einstein':'Einstein@home',  #  6772   |  526   |  15000 |  661
-          'rosetta':'Rosetta@home',   #  3843   |  548   |   7232 |  590
-             'seti':'SETI@home',      # 27000   | 1911   |  51000 | 1809
+name  = {                                 # Mcredit | kHosts | kDCGR  | DINH
+	     'poem':'POEM@home',          #         |   15   |        |
+           'riesel':'RieselSieve',        #         |   28   |        |
+          'malaria':'MalariaControl',     #   248   |   56   |    860 |  101
+              'qmc':'QMC@home',           #   982   |   61   |   1819 |   52
+            'spinh':'Spinhenge',          #         |   86   |        |
+	'predictor':'Predictor@Home',     #   460   |  146   |     49 |   34 # de capa caída
+         'einstein':'Einstein@home',      #  6772   |  526   |  15000 |  661
+          'rosetta':'Rosetta@home',       #  3843   |  548   |   7232 |  590
+             'seti':'SETI@home',          # 27000   | 1911   |  51000 | 1809
 	}
 
 url   = { 'malaria':'http://www.malariacontrol.net/stats/host.gz',
@@ -414,6 +432,9 @@ url   = { 'malaria':'http://www.malariacontrol.net/stats/host.gz',
           'rosetta':'http://boinc.bakerlab.org/rosetta/stats/host.gz',
 	 'einstein':'http://einstein.phys.uwm.edu/stats/host_id.gz',
         'predictor':'http://predictor.chem.lsa.umich.edu/stats/host_id.gz',
+           'riesel':'http://boinc.rieselsieve.com/stats/host_id.gz',
+            'spinh':'http://spin.fh-bielefeld.de/stats/host.gz',
+	     'poem':'http://boinc.fzk.de/poem/stats/host.gz',
 	}
 
 ########################################################
