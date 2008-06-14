@@ -368,7 +368,8 @@ def fit_n_cross(fn,type='total',order=1):
     txt += 'function rval = f2(x)\n'
 
     for d in range(order+1):
-      txt += '  B'+str(d)+' = '+params[i][d]+';\n'
+      parid = str(params[i][d])
+      txt += '  B'+str(d)+' = '+parid+';\n'
 
     t = form.replace('a','B')
     t = t.replace('y =','')
