@@ -30,7 +30,7 @@ For help, type:
 
 VERSION
 
-svn_revision = r7 (2008-05-12 22:20:32)
+svn_revision = r10 (2008-06-14 14:22:50)
 
 '''
 
@@ -169,27 +169,20 @@ def save_log(project,stringa,stringb):
   if not re.search('\n',stringb): stringb += '\n'
 
   fn = os.environ['HOME']+'/.LOGs/boinc/'+project+'.nhosts.dat'
-  f = FM.myopen(fn,'a')
-  f.write(stringa)
-  f.close()
+  FM.w2file(fn,stringa,'a')
 
   fn = os.environ['HOME']+'/.LOGs/boinc/'+project+'.credit.dat'
-  f = FM.myopen(fn,'a')
-  f.write(stringb)
-  f.close()
+  FM.w2file(fn,stringb,'a')
 
   stringc = "%-15s logged at %10s on %1s\n" % (project,S.hour(),S.day())
   fn = os.environ['HOME']+'/.LOGs/boinc/entries.log'
-  f = FM.myopen(fn,'a')
-  f.write(stringc)
-  f.close()
+  FM.w2file(fn,stringc,'a')
 
-def make_plot(fn,type,png=False):
+def make_plot(fn,type):
   '''
   Plot results with Xmgrace, either interactively or saving to a PNG file.
     fn   = file name of data file
     type = whether you want raw values ('total') or their (approx. numeric) derivative vs. time ('speed')
-    png  = whether to save to PNG files (True) or not.
   '''
 
 
@@ -258,9 +251,7 @@ def proc_data(fn,type):
   Process data and generate output string to plot or analize.
   '''
 
-  f = FM.myopen(fn,'r')
-  lines = f.readlines()
-  f.close()
+  lines = FM.file2array(fn)
 
   out_string = ''
 
@@ -357,9 +348,9 @@ def fit_n_cross(fn,type='total',order=1):
 
     form = form.replace('^1 ',' ')
 
-    [par,r,x0] = DM.xmgrace_fit(data,form)
+    [par,r] = DM.xmgrace_fit(data,form)
     params.append(par[0:order+1])
-    rpar.append(r)
+    rpar.append(float(r))
 
   so = ['Linux','Mac']
   for i in [1,2]:
@@ -495,6 +486,7 @@ elif o.analize:
   for t in ['nhosts']:
     print 'According to '+t+':'
     fn =  os.environ['HOME']+'/.LOGs/boinc/'+name[o.project]+'.'+t+'.dat'
+
     for order in [1,2,3]: # order of polynomial fit
       print "\nWith a polynomial of order "+str(order)+':'
       fit_n_cross(fn,type,order)
@@ -506,7 +498,11 @@ else:
   tmpf = 'boinc.tmp'
   xmgr = 'xmgrace -barebones -geom 1000x800 -fixed 650 500 '
 
-  for type in ['total','speed']:
+  types = ['total']
+  if o.total:
+    types.append('speed')
+
+  for type in types:
     for t in ['credit','nhosts']:
       fn =  os.environ['HOME']+'/.LOGs/boinc/'+name[o.project]+'.'+t+'.dat'
-      make_plot(fn,type,o.png)
+      make_plot(fn,type)
