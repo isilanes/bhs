@@ -40,11 +40,46 @@ import os
 import optparse
 import copy
 
-sys.path.append(os.environ['HOME']+'/WCs/PublishedSoftware/PythonModules')
+sys.path.append(os.environ['HOME']+'/WCs/PythonModules')
 
 import DataManipulation as DM
 import FileManipulation as FM
 import System as S
+
+########################################################
+#                                                      #
+#  Data to supply by user. Project lists and so forth  #
+#                                                      #
+########################################################
+
+name  = {                                 # Mcredit | kHosts | kDCGR  | DINH
+	     'poem':'POEM@home',          #         |   15   |        |
+           'riesel':'RieselSieve',        #         |   28   |        |
+          'malaria':'MalariaControl',     #   248   |   56   |    860 |  101
+              'qmc':'QMC@home',           #   982   |   61   |   1819 |   52
+            'spinh':'Spinhenge',          #         |   86   |        |
+	'predictor':'Predictor@Home',     #   460   |  146   |     49 |   34 # de capa caída
+         'einstein':'Einstein@home',      #  6772   |  526   |  15000 |  661
+          'rosetta':'Rosetta@home',       #  3843   |  548   |   7232 |  590
+             'seti':'SETI@home',          # 27000   | 1911   |  51000 | 1809
+	}
+
+url   = { 'malaria':'http://www.malariacontrol.net/stats/host.gz',
+              'qmc':'http://qah.uni-muenster.de/stats/host.gz',
+             'seti':'http://setiathome.berkeley.edu/stats/host.gz',
+          'rosetta':'http://boinc.bakerlab.org/rosetta/stats/host.gz',
+	 'einstein':'http://einstein.phys.uwm.edu/stats/host_id.gz',
+        'predictor':'http://predictor.chem.lsa.umich.edu/stats/host_id.gz',
+           'riesel':'http://boinc.rieselsieve.com/stats/host_id.gz',
+            'spinh':'http://spin.fh-bielefeld.de/stats/host.gz',
+	     'poem':'http://boinc.fzk.de/poem/stats/host.gz',
+	}
+
+########################################################
+#                                                      #
+#           End data to supply by user                 #
+#                                                      #
+########################################################
 
 # Read arguments:
 parser = optparse.OptionParser()
@@ -399,41 +434,6 @@ def fit_n_cross(fn,type='total',order=1):
     else:
       frac = 100*(end-begin)/time
       print "%-6s will cross Windows in %8.1f days (R = %8.6f | C = %5.1f%%)" % (so[i-1],time,rpar[i-1],frac)
-
-########################################################
-#                                                      #
-#  Data to supply by user. Project lists and so forth  #
-#                                                      #
-########################################################
-
-name  = {                                 # Mcredit | kHosts | kDCGR  | DINH
-	     'poem':'POEM@home',          #         |   15   |        |
-           'riesel':'RieselSieve',        #         |   28   |        |
-          'malaria':'MalariaControl',     #   248   |   56   |    860 |  101
-              'qmc':'QMC@home',           #   982   |   61   |   1819 |   52
-            'spinh':'Spinhenge',          #         |   86   |        |
-	'predictor':'Predictor@Home',     #   460   |  146   |     49 |   34 # de capa caída
-         'einstein':'Einstein@home',      #  6772   |  526   |  15000 |  661
-          'rosetta':'Rosetta@home',       #  3843   |  548   |   7232 |  590
-             'seti':'SETI@home',          # 27000   | 1911   |  51000 | 1809
-	}
-
-url   = { 'malaria':'http://www.malariacontrol.net/stats/host.gz',
-              'qmc':'http://qah.uni-muenster.de/stats/host.gz',
-             'seti':'http://setiathome.berkeley.edu/stats/host.gz',
-          'rosetta':'http://boinc.bakerlab.org/rosetta/stats/host.gz',
-	 'einstein':'http://einstein.phys.uwm.edu/stats/host_id.gz',
-        'predictor':'http://predictor.chem.lsa.umich.edu/stats/host_id.gz',
-           'riesel':'http://boinc.rieselsieve.com/stats/host_id.gz',
-            'spinh':'http://spin.fh-bielefeld.de/stats/host.gz',
-	     'poem':'http://boinc.fzk.de/poem/stats/host.gz',
-	}
-
-########################################################
-#                                                      #
-#           End data to supply by user                 #
-#                                                      #
-########################################################
 
 title = { 'nhosts':{ 'total':'Total hosts',
                      'speed':'Daily increase in number of hosts' },
