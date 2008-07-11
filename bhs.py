@@ -30,7 +30,7 @@ For help, type:
 
 VERSION
 
-svn_revision = r10 (2008-06-14 14:22:50)
+svn_revision = r14 (2008-07-11 17:50:30)
 
 '''
 
@@ -77,6 +77,15 @@ url   = { 'malaria':'http://www.malariacontrol.net/stats/host.gz',
             'civis':'http://ibercivis.es/stats/host.gz'
 	}
 
+log_those = [ 'poem',
+              'malaria',
+	      'qmc',
+	      'spinh',
+	      'einstein',
+	      'rosetta',
+	      'seti',
+	      'civis' ]
+
 ########################################################
 #                                                      #
 #           End data to supply by user                 #
@@ -117,7 +126,14 @@ parser.add_option("-T", "--total",
 		  action="store_true",
 		  default=False)
 
+parser.add_option("-n", "--next",
+                  help="If true, check what was last project logged, and log the next one in internal list. Default: False.",
+		  action="store_true",
+		  default=False)
+
 (o,args) = parser.parse_args()
+
+#--------------------------------------------------#  
 
 def host_stats(file=None):
   if file == None: sys.exit("bhs.host_stats: Need a file name to process!")
@@ -189,6 +205,8 @@ def host_stats(file=None):
 
   return nstring,cstring
 
+#--------------------------------------------------#  
+
 def get_log(url):
   '''
   Retrieve the log file from the URL.
@@ -199,6 +217,8 @@ def get_log(url):
 
   else:
     S.cli("wget -q "+url+' -O host.gz')
+
+#--------------------------------------------------#  
 
 def save_log(project,stringa,stringb):
 
@@ -214,6 +234,8 @@ def save_log(project,stringa,stringb):
   stringc = "%-15s logged at %10s on %1s\n" % (project,S.hour(),S.day())
   fn = os.environ['HOME']+'/.LOGs/boinc/entries.log'
   FM.w2file(fn,stringc,'a')
+
+#--------------------------------------------------#  
 
 def make_plot(fn,type):
   '''
@@ -282,6 +304,8 @@ def make_plot(fn,type):
     S.cli(str1+xtra)
 
   os.unlink(tmpf)
+
+#--------------------------------------------------#  
 
 def proc_data(fn,type):
   '''
@@ -352,6 +376,8 @@ def proc_data(fn,type):
       oline  = copy.deepcopy(line)
   
   return [out_string,tot,[max_x,max_y]]
+
+#--------------------------------------------------#  
 
 def fit_n_cross(fn,type='total',order=1):
   '''
@@ -437,6 +463,42 @@ def fit_n_cross(fn,type='total',order=1):
       frac = 100*(end-begin)/time
       print "%-6s will cross Windows in %8.1f days (R = %8.6f | C = %5.1f%%)" % (so[i-1],time,rpar[i-1],frac)
 
+#--------------------------------------------------#  
+
+def next_project(logfile=os.environ['HOME']+'/.LOGs/boinc/last.dat'):
+  '''
+  Read a log file to see which was the last project logged, and log the next one,
+  according to an internal list (the array "log_those").
+  '''
+
+  try:
+    lastone = FM.file2array(logfile)
+    lastone = lastone[0].replace('\n','')
+    check   = False
+    if lastone == log_those[-1]:
+      nextone = log_those[0]
+    else:
+      nextone = log_those[-1]
+
+    for p in log_those:
+
+      if check:
+        nextone = p
+        break
+
+      if p == lastone:
+        check = True
+        
+  except:
+    lastone = 'malaria'
+    nextone = 'malaria'
+
+  FM.w2file(logfile,nextone+'\n')
+
+  return nextone
+
+#--------------------------------------------------#  
+
 title = { 'nhosts':{ 'total':'Total hosts',
                      'speed':'Daily increase in number of hosts' },
 
@@ -452,6 +514,9 @@ if o.project == 'help':
     shelp += '  %-10s %-1s\n' % (p,pu)
 
   sys.exit(shelp)
+
+if o.next:
+  o.project = next_project()
 
 # Actualy run:
 if o.retrieve:
