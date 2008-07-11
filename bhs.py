@@ -53,15 +53,16 @@ import System as S
 ########################################################
 
 name  = {                                 # Mcredit | kHosts | kDCGR  | DINH
-	     'poem':'POEM@home',          #         |   15   |        |
-           'riesel':'RieselSieve',        #         |   28   |        |
-          'malaria':'MalariaControl',     #   248   |   56   |    860 |  101
-              'qmc':'QMC@home',           #   982   |   61   |   1819 |   52
-            'spinh':'Spinhenge',          #         |   86   |        |
+	     'poem':'POEM@home',          #   222   |   22   |   3258 |   72
+           'riesel':'RieselSieve',        #   340   |   28   |        |      # inactivo
+          'malaria':'MalariaControl',     #   293   |   61   |    808 |   95
+              'qmc':'QMC@home',           #  1090   |   64   |   2009 |   56
+            'spinh':'Spinhenge',          #   412   |   89   |    754 |  109
 	'predictor':'Predictor@Home',     #   460   |  146   |     49 |   34 # de capa caída
-         'einstein':'Einstein@home',      #  6772   |  526   |  15000 |  661
-          'rosetta':'Rosetta@home',       #  3843   |  548   |   7232 |  590
+         'einstein':'Einstein@home',      #  7637   |  621   |  17000 | 1788
+          'rosetta':'Rosetta@home',       #  4207   |  577   |   6079 |  446
              'seti':'SETI@home',          # 27000   | 1911   |  51000 | 1809
+            'civis':'IBERCIVIS',          #  3531   | 3160   | 
 	}
 
 url   = { 'malaria':'http://www.malariacontrol.net/stats/host.gz',
@@ -73,6 +74,7 @@ url   = { 'malaria':'http://www.malariacontrol.net/stats/host.gz',
            'riesel':'http://boinc.rieselsieve.com/stats/host_id.gz',
             'spinh':'http://spin.fh-bielefeld.de/stats/host.gz',
 	     'poem':'http://boinc.fzk.de/poem/stats/host.gz',
+            'civis':'http://ibercivis.es/stats/host.gz'
 	}
 
 ########################################################
@@ -393,7 +395,7 @@ def fit_n_cross(fn,type='total',order=1):
     txt += 'function rval = f1(x)\n'
 
     for d in range(order+1):
-      txt += '  A'+str(d)+' = '+params[0][d]+';\n'
+      txt += '  A'+str(d)+' = '+str(params[0][d])+';\n'
 
     t = form.replace('a','A')
     t = t.replace('y =','')
