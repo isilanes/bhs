@@ -30,7 +30,7 @@ For help, type:
 
 VERSION
 
-svn_revision = r14 (2008-07-11 17:50:30)
+svn_revision = r16 (2008-09-10 11:46:47)
 
 '''
 
@@ -466,6 +466,31 @@ def fit_n_cross(fn,type='total',order=1):
 
 #--------------------------------------------------#  
 
+def last_perc(fn):
+  '''
+  Return the last share percents.
+  '''
+
+  cmnd = 'tail -1 %s' % (fn)
+  line = S.cli(cmnd,True)
+
+  vals = [float(x) for x in line[0].split()]
+  
+  tot = 0
+  for v in vals[1:]:
+    tot += v
+
+  out_str = '\nLast percents:\n'
+  i = 1
+  for OS in ['Windows', 'Linux', 'Mac', 'Other']:
+    perc     = 100*vals[i]/tot
+    out_str += '%10s: %6.2f %%\n' % (OS,perc)
+    i       += 1
+
+  return out_str
+
+#--------------------------------------------------#  
+
 def next_project(logfile=os.environ['HOME']+'/.LOGs/boinc/last.dat'):
   '''
   Read a log file to see which was the last project logged, and log the next one,
@@ -549,12 +574,14 @@ if o.retrieve:
 elif o.analize:
   # Analize:
 
+
   t0   = 1201956633
   type = 'total'
   
   for t in ['nhosts']:
     print 'According to '+t+':'
-    fn =  os.environ['HOME']+'/.LOGs/boinc/'+name[o.project]+'.'+t+'.dat'
+    fn =  '%s/.LOGs/boinc/%s.%s.dat' % (os.environ['HOME'],name[o.project],t)
+    print last_perc(fn)
 
     for order in [1,2,3]: # order of polynomial fit
       print "\nWith a polynomial of order "+str(order)+':'
