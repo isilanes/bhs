@@ -63,6 +63,7 @@ name  = {                                 # Mcredit | kHosts | kDCGR  | DINH
           'rosetta':'Rosetta@home',       #  4207   |  577   |   6079 |  446
              'seti':'SETI@home',          # 27000   | 1911   |  51000 | 1809
             'civis':'IBERCIVIS',          #  3531   | 3160   | 
+	      'lhc':'LHC@home',           #
 	}
 
 url   = { 'malaria':'http://www.malariacontrol.net/stats/host.gz',
@@ -74,7 +75,8 @@ url   = { 'malaria':'http://www.malariacontrol.net/stats/host.gz',
            'riesel':'http://boinc.rieselsieve.com/stats/host_id.gz',
             'spinh':'http://spin.fh-bielefeld.de/stats/host.gz',
 	     'poem':'http://boinc.fzk.de/poem/stats/host.gz',
-            'civis':'http://ibercivis.es/stats/host.gz'
+            'civis':'http://ibercivis.es/stats/host.gz',
+	      'lhc':'http://lhcathome.cern.ch/lhcathome/stats/host.gz',
 	}
 
 log_those = [ 'poem',
@@ -84,6 +86,7 @@ log_those = [ 'poem',
 	      'einstein',
 	      'rosetta',
 	      'seti',
+	      'lhc'
 	      #'civis',
 	      ]
 
