@@ -30,7 +30,7 @@ For help, type:
 
 VERSION
 
-svn_revision = r16 (2008-09-10 11:46:47)
+svn_revision = r19 (2008-10-29 21:37:57)
 
 '''
 
@@ -284,21 +284,24 @@ def make_plot_new(fn,type,t='total'):
       ycol.append(yy)
 
   dy   = int(miny / 10)
+  dx   = 30
 
   miny = round2val(miny,dy)
   maxy = round2val(maxy,dy,True)
+  maxx = round2val(xcol[-1],dx,True)
 
   print dy,miny,maxy
 
   data  = WX.XYset(xcol,ycol)
   graph = WX.Graph(data)
-  graph.SetWorld(xmin=0,ymin=miny,xmax=world[0],ymax=maxy)
+  graph.SetWorld(xmin=0,ymin=miny,xmax=maxx,ymax=maxy)
   graph.SetYaxis(majorUnit=dy,label='%')
+  graph.SetXaxis(majorUnit=dx,label='Days since Feb 3, 2008')
   plot  = WX.Plot(tmpf,graph)
   plot.WriteFile()
 
   cmnd = '/usr/bin/xmgrace -barebones -geom 975x725 -fixed 600 420 -noask -nxy %s' % (tmpf)
-  #S.cli(cmnd)
+  S.cli(cmnd)
 
 #--------------------------------------------------#  
 
@@ -310,10 +313,9 @@ def round2val(number=0,rounder=1,up=False):
     up      = whether to round up (true) or down (false)
   '''
 
-  rounded   = number / rounder
   remainder = number % rounder
-
-  rounded = rounded*rounder
+  rounded   = (number - remainder) / rounder
+  rounded   = rounded*rounder
 
   if up:
     rounded += rounder
