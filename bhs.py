@@ -30,7 +30,7 @@ For help, type:
 
 VERSION
 
-svn_revision = r16 (2008-09-10 11:46:47)
+svn_revision = r20 (2008-10-30 19:35:17)
 
 '''
 
@@ -45,6 +45,7 @@ sys.path.append(os.environ['HOME']+'/WCs/PythonModules')
 import DataManipulation as DM
 import FileManipulation as FM
 import System as S
+import WriteXMGR as WX
 
 ########################################################
 #                                                      #
@@ -137,7 +138,7 @@ parser.add_option("-n", "--next",
 
 (o,args) = parser.parse_args()
 
-#--------------------------------------------------#  
+#--------------------------------------------------------------------------------#
 
 def host_stats(file=None):
   if file == None: sys.exit("bhs.host_stats: Need a file name to process!")
@@ -209,7 +210,7 @@ def host_stats(file=None):
 
   return nstring,cstring
 
-#--------------------------------------------------#  
+#--------------------------------------------------------------------------------#
 
 def get_log(url):
   '''
@@ -222,7 +223,7 @@ def get_log(url):
   else:
     S.cli("wget -q "+url+' -O host.gz')
 
-#--------------------------------------------------#  
+#--------------------------------------------------------------------------------#
 
 def save_log(project,stringa,stringb):
 
@@ -239,7 +240,90 @@ def save_log(project,stringa,stringb):
   fn = os.environ['HOME']+'/.LOGs/boinc/entries.log'
   FM.w2file(fn,stringc,'a')
 
-#--------------------------------------------------#  
+#--------------------------------------------------------------------------------#
+
+def make_plot_new(fn,type,t='total'):
+  '''
+  Plot results with Xmgrace, using Thomas's WriteXMGR module.
+    fn   = file name of data file
+    type = whether you want raw values ('total') or their (approx. numeric) derivative vs. time ('speed')
+  '''
+
+  [datastr,tot,world] = proc_data(fn,type)
+
+  subtit = title[t][type]
+
+  units = ['','k','M','G']
+
+  stot = tot
+  iu   = 0
+  while stot > 10000:
+    stot = stot / 1000
+    iu += 1
+
+  subtit = " %s: %i %s" % (subtit,stot,units[iu])
+
+  tit = name[o.project]
+
+  miny = 100
+  maxy = 0
+  xcol = []
+  ycol = []
+  for line in datastr.split('\n'):
+    if line:
+      aline = [float(x) for x in line.split()]
+      xx = aline[0]
+      yy = aline[1]
+
+      if yy > maxy:
+        maxy = yy
+ 
+      elif yy < miny:
+        miny = yy
+
+      xcol.append(xx)
+      ycol.append(yy)
+
+  dy   = int(miny / 10)
+  dx   = 30
+
+  miny = round2val(miny,dy)
+  maxy = round2val(maxy,dy,True)
+  maxx = round2val(xcol[-1],dx,True)
+
+  print dy,miny,maxy
+
+  data  = WX.XYset(xcol,ycol)
+  graph = WX.Graph(data)
+  graph.SetWorld(xmin=0,ymin=miny,xmax=maxx,ymax=maxy)
+  graph.SetYaxis(majorUnit=dy,label='%')
+  graph.SetXaxis(majorUnit=dx,label='Days since Feb 3, 2008')
+  plot  = WX.Plot(tmpf,graph)
+  plot.WriteFile()
+
+  cmnd = '/usr/bin/xmgrace -barebones -geom 975x725 -fixed 600 420 -noask -nxy %s' % (tmpf)
+  S.cli(cmnd)
+
+#--------------------------------------------------------------------------------#
+
+def round2val(number=0,rounder=1,up=False):
+  '''
+  Rounds a number to multiples of a rounder, and returns it.
+    number  = number to round
+    rounder = number the rounded number should be multiple of
+    up      = whether to round up (true) or down (false)
+  '''
+
+  remainder = number % rounder
+  rounded   = (number - remainder) / rounder
+  rounded   = rounded*rounder
+
+  if up:
+    rounded += rounder
+
+  return rounded 
+
+#--------------------------------------------------------------------------------#
 
 def make_plot(fn,type):
   '''
@@ -270,7 +354,7 @@ def make_plot(fn,type):
   if o.png:
     fout = fn.replace('.dat','_'+type+'.png')
     fout = fout.replace('@','_at_')
-    xtra += '-hardcopy -hdevice PNG -pexec \'page size 960, 720\' -printfile '+fout
+    xtra += '-hardcopy -hdevice PNG -pexec \'page size 1920, 1440\' -printfile '+fout
 
   if o.total:
     parf = os.environ['HOME']+'/.LOGs/boinc/boinc_total.par'
@@ -309,7 +393,7 @@ def make_plot(fn,type):
 
   os.unlink(tmpf)
 
-#--------------------------------------------------#  
+#--------------------------------------------------------------------------------#
 
 def proc_data(fn,type):
   '''
@@ -381,9 +465,9 @@ def proc_data(fn,type):
   
   return [out_string,tot,[max_x,max_y]]
 
-#--------------------------------------------------#  
+#--------------------------------------------------------------------------------#
 
-def fit_n_cross(fn,type='total',order=1):
+def fit_n_cross(fn,type='total',order=1,npoints=5):
   '''
   Use polynomial of N-order to fit curves, and then find crossing.
     fn    = name of file to get info from
@@ -391,7 +475,12 @@ def fit_n_cross(fn,type='total',order=1):
     order = N of N-order polynomial
   '''
 
-  s = proc_data(fn,type)
+  # Get last "npoints" points only:
+  fntail = '%s.tailed' % (fn)
+  cmnd = 'tail --lines=%i %s > %s' % (npoints,fn,fntail)
+  S.cli(cmnd)
+  s = proc_data(fntail,type)
+  os.unlink(fntail)
 
   ars   = s[0].split('\n')
   begin = float(ars[0].split()[0])
@@ -407,7 +496,6 @@ def fit_n_cross(fn,type='total',order=1):
         aline = line.split()
         data += aline[0]+' '+aline[i]+'\n'
 
-
     form = 'y = a0 '
     for d in range(order):
       n = d + 1
@@ -419,8 +507,9 @@ def fit_n_cross(fn,type='total',order=1):
     params.append(par[0:order+1])
     rpar.append(float(r))
 
-  so = ['Linux','Mac']
-  for i in [1,2]:
+  so = ['Linux']
+  for i in range(len(so)):
+    i    = i + 1
     txt  = 'clear all;\n'
     txt += 'function rval = f1(x)\n'
 
@@ -456,6 +545,9 @@ def fit_n_cross(fn,type='total',order=1):
     out = S.cli('/usr/bin/octave -q octave.tmp',True)
     os.unlink('octave.tmp')
 
+    # Print output:
+    print "%3i points: " % (npoints),
+
     # Will ever cross? (error):
     time  = float(out[0].split()[2])
     error = float(out[1].split()[2])
@@ -464,10 +556,19 @@ def fit_n_cross(fn,type='total',order=1):
       print "%-6s will never cross Windows!" % (so[i-1])
 
     else:
+      time_sec  = time*24*3600
+      date_sec  = t0 + time_sec
+      now_sec   = float(S.cli('date +\%s',True)[0])
+      elap_sec  = date_sec - now_sec
+      elap_days = elap_sec/(24*3600)
+      if elap_days < 10000:
+        date = S.cli('date -d "+%i days" +%%F' % (elap_days),True)[0].replace('\n','')
+      else:
+        date = 'Muuu tarde'
       frac = 100*(end-begin)/time
-      print "%-6s will cross Windows in %8.1f days (R = %8.6f | C = %5.1f%%)" % (so[i-1],time,rpar[i-1],frac)
+      print "%-6s will cross Windows in %8.1f days (%s) R = %8.6f | C = %5.1f%%" % (so[i-1], elap_days, date, rpar[i-1], frac)
 
-#--------------------------------------------------#  
+#--------------------------------------------------------------------------------#
 
 def last_perc(fn):
   '''
@@ -492,7 +593,7 @@ def last_perc(fn):
 
   return out_str
 
-#--------------------------------------------------#  
+#--------------------------------------------------------------------------------#
 
 def next_project(logfile=os.environ['HOME']+'/.LOGs/boinc/last.dat'):
   '''
@@ -526,7 +627,7 @@ def next_project(logfile=os.environ['HOME']+'/.LOGs/boinc/last.dat'):
 
   return nextone
 
-#--------------------------------------------------#  
+#--------------------------------------------------------------------------------#
 
 title = { 'nhosts':{ 'total':'Total hosts',
                      'speed':'Daily increase in number of hosts' },
@@ -535,6 +636,7 @@ title = { 'nhosts':{ 'total':'Total hosts',
                      'speed':'Daily Credit Generation Rate' }
 	}
 
+# Help:
 if o.project == 'help':
 
   shelp = 'Currently available projects:\n'
@@ -544,6 +646,7 @@ if o.project == 'help':
 
   sys.exit(shelp)
 
+# Choose project if automatic:
 if o.next:
   o.project = next_project()
 
@@ -577,7 +680,6 @@ if o.retrieve:
 elif o.analize:
   # Analize:
 
-
   t0   = 1201956633
   type = 'total'
   
@@ -586,9 +688,11 @@ elif o.analize:
     fn =  '%s/.LOGs/boinc/%s.%s.dat' % (os.environ['HOME'],name[o.project],t)
     print last_perc(fn)
 
-    for order in [1,2,3]: # order of polynomial fit
-      print "\nWith a polynomial of order "+str(order)+':'
-      fit_n_cross(fn,type,order)
+    for order in [1]: # order of polynomial fit
+      print '\nWith a polynomial of order %i:' % (order)
+      for npoints in [2,3,4,5,10,20]: # number of last points to use for fit
+        npoints = npoints + order
+        fit_n_cross(fn,type,order,npoints)
 
 else:
   # Plot or save PNG
@@ -603,5 +707,5 @@ else:
 
   for type in types:
     for t in ['credit','nhosts']:
-      fn =  os.environ['HOME']+'/.LOGs/boinc/'+name[o.project]+'.'+t+'.dat'
+      fn =  '%s/.LOGs/boinc/%s.%s.dat' % (os.environ['HOME'], name[o.project], t)
       make_plot(fn,type)
