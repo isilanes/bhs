@@ -30,7 +30,7 @@ For help, type:
 
 VERSION
 
-svn_revision = r20 (2008-10-30 19:35:17)
+svn_revision = r21 (2008-12-01 13:24:45)
 
 '''
 
@@ -47,49 +47,57 @@ import FileManipulation as FM
 import System as S
 import WriteXMGR as WX
 
+#--------------------------------------------------------------------------------#
+
+class project:
+  
+  def __init__(self,name=None,url=None,logit=False,stats=[]):
+    self.name  = name
+    self.url   = url
+    self.logit = logit
+
+    # stats is a 4-element list, with the values of last logged
+    # Mcredit, kHosts, kDCGR and DINH (see code for explanations)
+    # stats has no real value at all.
+    self.stats = stats
+
+  def get_log(self):
+    '''
+    Retrieve the log file from the URL.
+    '''
+
+    if o.verbose:
+      cmnd = 'wget %s -O host.gz'    % (self.url)
+
+    else:
+      cmnd = 'wget -q %s -O host.gz' % (self.url)
+
+    S.cli(cmnd)
+
+#--------------------------------------------------------------------------------#
+
 ########################################################
 #                                                      #
 #  Data to supply by user. Project lists and so forth  #
 #                                                      #
 ########################################################
 
-name  = {                                 # Mcredit | kHosts | kDCGR  | DINH
-	     'poem':'POEM@home',          #   222   |   22   |   3258 |   72
-           'riesel':'RieselSieve',        #   340   |   28   |        |      # inactivo
-          'malaria':'MalariaControl',     #   293   |   61   |    808 |   95
-              'qmc':'QMC@home',           #  1090   |   64   |   2009 |   56
-            'spinh':'Spinhenge',          #   412   |   89   |    754 |  109
-	'predictor':'Predictor@Home',     #   460   |  146   |     49 |   34 # de capa caída
-         'einstein':'Einstein@home',      #  7637   |  621   |  17000 | 1788
-          'rosetta':'Rosetta@home',       #  4207   |  577   |   6079 |  446
-             'seti':'SETI@home',          # 27000   | 1911   |  51000 | 1809
-            'civis':'IBERCIVIS',          #  3531   | 3160   | 
-	      'lhc':'LHC@home',           #
-	}
-
-url   = { 'malaria':'http://www.malariacontrol.net/stats/host.gz',
-              'qmc':'http://qah.uni-muenster.de/stats/host.gz',
-             'seti':'http://setiathome.berkeley.edu/stats/host.gz',
-          'rosetta':'http://boinc.bakerlab.org/rosetta/stats/host.gz',
-	 'einstein':'http://einstein.phys.uwm.edu/stats/host_id.gz',
-        'predictor':'http://predictor.chem.lsa.umich.edu/stats/host_id.gz',
-           'riesel':'http://boinc.rieselsieve.com/stats/host_id.gz',
-            'spinh':'http://spin.fh-bielefeld.de/stats/host.gz',
-	     'poem':'http://boinc.fzk.de/poem/stats/host.gz',
-            'civis':'http://ibercivis.es/stats/host.gz',
-	      'lhc':'http://lhcathome.cern.ch/lhcathome/stats/host.gz',
-	}
-
-log_those = [ 'poem',
-              'malaria',
-	      'qmc',
-	      'spinh',
-	      'einstein',
-	      'rosetta',
-	      'seti',
-	      'lhc'
-	      #'civis',
-	      ]
+p = {                                        
+      'poem'      : project( name = 'POEM@home',      url = 'http://boinc.fzk.de/poem/stats/host.gz',               logit = True,  stats = [  388,   28,  1247,   35] ),
+      'malaria'   : project( name = 'MalariaControl', url = 'http://www.malariacontrol.net/stats/host.gz',          logit = True,  stats = [  429,   60,   963,   40] ),
+      'qmc'       : project( name = 'QCM@home',       url = 'http://qah.uni-muenster.de/stats/host.gz',             logit = True,  stats = [ 1409,   74,  2185,   67] ),
+      'spinh'     : project( name = 'Spinhenge',      url = 'http://spin.fh-bielefeld.de/stats/host.gz',            logit = True,  stats = [  547,  103,  1039,   97] ),
+      'lhc'       : project( name = 'LHC@home',       url = 'http://lhcathome.cern.ch/lhcathome/stats/host.gz',     logit = True,  stats = [  213,  185,   152,  161] ),
+      'rosetta'   : project( name = 'Rosetta@home',   url = 'http://boinc.bakerlab.org/rosetta/stats/host.gz',      logit = True,  stats = [ 5199,  648,  7546,  502] ),
+      'einstein'  : project( name = 'Einstein@home',  url = 'http://einstein.phys.uwm.edu/stats/host_id.gz',        logit = True,  stats = [ 9357,  723, 13000,  849] ),
+      'seti'      : project( name = 'SETI@home',      url = 'http://setiathome.berkeley.edu/stats/host.gz',         logit = True,  stats = [36000, 2135, 55000, 1201] ),
+      'civis'     : project( name = 'IBERCIVIS',      url = 'http://ibercivis.es/stats/host.gz',                    logit = True,  stats = [] ),
+      'milky'     : project( name = 'MilkyWay@home',  url = 'http://milkyway.cs.rpi.edu/milkyway/stats/host.gz',    logit = True,  stats = [] ),
+      'abc'       : project( name = 'ABC@home',       url = 'http://abcathome.com/stats/host.gz',                   logit = True,  stats = [] ),
+      'prime'     : project( name = 'PrimeGrid',      url = 'http://www.primegrid.com/stats/host.gz',               logit = True,  stats = [] ),
+      'riesel'    : project( name = 'RieselSieve',    url = 'http://boinc.rieselsieve.com/stats/host_id.gz',        logit = False, stats = [] ),
+      'predictor' : project( name = 'Predictor@home', url = 'http://predictor.chem.lsa.umich.edu/stats/host_id.gz', logit = False, stats = [] ),
+    }
 
 ########################################################
 #                                                      #
@@ -132,7 +140,7 @@ parser.add_option("-T", "--total",
 		  default=False)
 
 parser.add_option("-n", "--next",
-                  help="If true, check what was last project logged, and log the next one in internal list. Default: False.",
+                  help="If true, check what was last project logged, and log the next one in internal list. Implies -r. Default: False.",
 		  action="store_true",
 		  default=False)
 
@@ -212,19 +220,6 @@ def host_stats(file=None):
 
 #--------------------------------------------------------------------------------#
 
-def get_log(url):
-  '''
-  Retrieve the log file from the URL.
-  '''
-
-  if o.verbose:
-    S.cli('wget '+url+' -O host.gz')
-
-  else:
-    S.cli("wget -q "+url+' -O host.gz')
-
-#--------------------------------------------------------------------------------#
-
 def save_log(project,stringa,stringb):
 
   if not re.search('\n',stringa): stringa += '\n'
@@ -263,7 +258,7 @@ def make_plot_new(fn,type,t='total'):
 
   subtit = " %s: %i %s" % (subtit,stot,units[iu])
 
-  tit = name[o.project]
+  tit = p[o.project].name
 
   miny = 100
   maxy = 0
@@ -346,7 +341,7 @@ def make_plot(fn,type):
 
   subtit = " %s: %i %s" % (subtit,stot,units[iu])
 
-  tit = name[o.project]
+  tit = p[o.project].name
 
   FM.w2file(tmpf,out_string)
 
@@ -595,11 +590,13 @@ def last_perc(fn):
 
 #--------------------------------------------------------------------------------#
 
-def next_project(logfile=os.environ['HOME']+'/.LOGs/boinc/last.dat'):
+def next_project(projs=None, logfile=os.environ['HOME']+'/.LOGs/boinc/last.dat'):
   '''
   Read a log file to see which was the last project logged, and log the next one,
-  according to an internal list (the array "log_those").
+  according to an internal list of the projects with the flag "logit=True".
   '''
+
+  log_those = sorted(projs)
 
   try:
     lastone = FM.file2array(logfile)
@@ -629,6 +626,10 @@ def next_project(logfile=os.environ['HOME']+'/.LOGs/boinc/last.dat'):
 
 #--------------------------------------------------------------------------------#
 
+next_project(p)
+
+# --- Start with the run thing --- #
+
 title = { 'nhosts':{ 'total':'Total hosts',
                      'speed':'Daily increase in number of hosts' },
 
@@ -641,14 +642,15 @@ if o.project == 'help':
 
   shelp = 'Currently available projects:\n'
 
-  for p,pu in url.iteritems():
-    shelp += '  %-10s %-1s\n' % (p,pu)
+  for pr in sorted(p):
+    shelp += '  %-10s %-1s\n' % (pr,p[pr].name)
 
   sys.exit(shelp)
 
 # Choose project if automatic:
 if o.next:
-  o.project = next_project()
+  o.project  = next_project(p)
+  o.retrieve = True
 
 # Actualy run:
 if o.retrieve:
@@ -657,7 +659,7 @@ if o.retrieve:
   if (o.verbose):
     print 'Retrieving stats file...'
 
-  get_log(url[o.project])
+  print p[o.project].get_log()
 
   if (o.verbose):
     print 'Processing retrieved stats file...'
@@ -667,7 +669,7 @@ if o.retrieve:
   if (o.verbose):
     print 'Saving log...'
 
-  save_log(name[o.project],nstring,cstring)
+  save_log(p[o.project].name,nstring,cstring)
 
   if (o.verbose):
     print 'Deleting hosts.gz...'
@@ -685,7 +687,7 @@ elif o.analize:
   
   for t in ['nhosts']:
     print 'According to '+t+':'
-    fn =  '%s/.LOGs/boinc/%s.%s.dat' % (os.environ['HOME'],name[o.project],t)
+    fn =  '%s/.LOGs/boinc/%s.%s.dat' % (os.environ['HOME'],p[o.project].name,t)
     print last_perc(fn)
 
     for order in [1]: # order of polynomial fit
@@ -707,5 +709,5 @@ else:
 
   for type in types:
     for t in ['credit','nhosts']:
-      fn =  '%s/.LOGs/boinc/%s.%s.dat' % (os.environ['HOME'], name[o.project], t)
+      fn =  '%s/.LOGs/boinc/%s.%s.dat' % (os.environ['HOME'], p[o.project].name, t)
       make_plot(fn,type)
