@@ -30,7 +30,7 @@ For help, type:
 
 VERSION
 
-svn_revision = r21 (2008-12-01 13:24:45)
+svn_revision = r22 (2008-12-02 12:21:38)
 
 '''
 
@@ -66,11 +66,17 @@ class project:
     Retrieve the log file from the URL.
     '''
 
+    if (o.verbose):
+      print 'Retrieving stats file...'
+
+    # Limit bw usage, in KiB/s:
+    bwlimit = 100
+
     if o.verbose:
-      cmnd = 'wget %s -O host.gz'    % (self.url)
+      cmnd = 'wget --limit-rate=%ik    %s -O host.gz' % (bwlimit,self.url)
 
     else:
-      cmnd = 'wget -q %s -O host.gz' % (self.url)
+      cmnd = 'wget --limit-rate=%ik -q %s -O host.gz' % (bwlimit,self.url)
 
     S.cli(cmnd)
 
@@ -85,7 +91,7 @@ class project:
 p = {                                        
       'poem'      : project( name = 'POEM@home',      url = 'http://boinc.fzk.de/poem/stats/host.gz',               logit = True,  stats = [  388,   28,  1247,   35] ),
       'malaria'   : project( name = 'MalariaControl', url = 'http://www.malariacontrol.net/stats/host.gz',          logit = True,  stats = [  429,   60,   963,   40] ),
-      'qmc'       : project( name = 'QCM@home',       url = 'http://qah.uni-muenster.de/stats/host.gz',             logit = True,  stats = [ 1409,   74,  2185,   67] ),
+      'qmc'       : project( name = 'QMC@home',       url = 'http://qah.uni-muenster.de/stats/host.gz',             logit = True,  stats = [ 1409,   74,  2185,   67] ),
       'spinh'     : project( name = 'Spinhenge',      url = 'http://spin.fh-bielefeld.de/stats/host.gz',            logit = True,  stats = [  547,  103,  1039,   97] ),
       'lhc'       : project( name = 'LHC@home',       url = 'http://lhcathome.cern.ch/lhcathome/stats/host.gz',     logit = True,  stats = [  213,  185,   152,  161] ),
       'rosetta'   : project( name = 'Rosetta@home',   url = 'http://boinc.bakerlab.org/rosetta/stats/host.gz',      logit = True,  stats = [ 5199,  648,  7546,  502] ),
@@ -149,7 +155,12 @@ parser.add_option("-n", "--next",
 #--------------------------------------------------------------------------------#
 
 def host_stats(file=None):
-  if file == None: sys.exit("bhs.host_stats: Need a file name to process!")
+
+  if file == None:
+    sys.exit("bhs.host_stats: Need a file name to process!")
+
+  if (o.verbose):
+    print 'Processing retrieved stats file...'
 
   credit  = 0
   os_list = ['win','lin','dar','oth']
@@ -221,6 +232,9 @@ def host_stats(file=None):
 #--------------------------------------------------------------------------------#
 
 def save_log(project,stringa,stringb):
+
+  if (o.verbose):
+    print 'Saving log...'
 
   if not re.search('\n',stringa): stringa += '\n'
   if not re.search('\n',stringb): stringb += '\n'
@@ -378,8 +392,9 @@ def make_plot(fn,type):
 
     world = [10*x for x in ticks]
     yscale = "x 10\S%s" % (len(str(scale[1]))-1)
-    str1 = xmgr+" -noask -nxy "+tmpf+' -p '+parf+' -pexec \'SUBTITLE "'+subtit+'"\' -pexec \'TITLE "'+tit+'"\' -pexec \'yaxis  label "'+yscale+'"\' '
-    S.cli(str1+' -pexec "yaxis  tick major '+str(ticks[1])+'" -world 0 0 '+str(world[0])+' '+str(world[1])+xtra)
+    cmnd = '%s -noask -nxy %s -p %s -pexec \'SUBTITLE "%s"\' -pexec \'TITLE "%s"\' -pexec \'yaxis  label "%s"\' ' % (xmgr,tmpf,parf,subtit,tit,yscale)
+    cmnd = '%s -pexec "yaxis  tick major %i" -pexec "world ymax %f" %s' % (cmnd,ticks[1],world[1],xtra)
+    S.cli(cmnd)
 
   else:
     parf = os.environ['HOME']+'/.LOGs/boinc/boinc.par'
@@ -590,31 +605,30 @@ def last_perc(fn):
 
 #--------------------------------------------------------------------------------#
 
-def next_project(projs=None, logfile=os.environ['HOME']+'/.LOGs/boinc/last.dat'):
+def next_project(p=None, logfile=os.environ['HOME']+'/.LOGs/boinc/last.dat'):
   '''
   Read a log file to see which was the last project logged, and log the next one,
   according to an internal list of the projects with the flag "logit=True".
   '''
 
-  log_those = sorted(projs)
+  log_those = []
+  for k in p:
+    if p[k].logit:
+      log_those.append(k) 
+
+  log_those = sorted(log_those)
 
   try:
-    lastone = FM.file2array(logfile)
-    lastone = lastone[0].replace('\n','')
-    check   = False
+    lastone = FM.file2array(logfile)[0]
+
     if lastone == log_those[-1]:
       nextone = log_those[0]
+
     else:
-      nextone = log_those[-1]
-
-    for p in log_those:
-
-      if check:
-        nextone = p
-        break
-
-      if p == lastone:
-        check = True
+      for i in range(len(log_those)):
+        if log_those[i] == lastone:
+	  nextone = log_those[i+1]
+	  break
         
   except:
     lastone = 'malaria'
@@ -625,8 +639,6 @@ def next_project(projs=None, logfile=os.environ['HOME']+'/.LOGs/boinc/last.dat')
   return nextone
 
 #--------------------------------------------------------------------------------#
-
-next_project(p)
 
 # --- Start with the run thing --- #
 
@@ -654,23 +666,17 @@ if o.next:
 
 # Actualy run:
 if o.retrieve:
-  # Retrieve, process, save, rm:
 
-  if (o.verbose):
-    print 'Retrieving stats file...'
+  # Retrieve log:
+  p[o.project].get_log()
 
-  print p[o.project].get_log()
-
-  if (o.verbose):
-    print 'Processing retrieved stats file...'
-
+  # Process log:
   (nstring,cstring) = host_stats('host.gz')
 
-  if (o.verbose):
-    print 'Saving log...'
-
+  # Save log:
   save_log(p[o.project].name,nstring,cstring)
 
+  # Clean up, and say bye:
   if (o.verbose):
     print 'Deleting hosts.gz...'
 
