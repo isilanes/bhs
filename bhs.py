@@ -30,7 +30,7 @@ For help, type:
 
 VERSION
 
-svn_revision = r22 (2008-12-02 12:21:38)
+svn_revision = r23 (2008-12-02 18:36:15)
 
 '''
 
@@ -149,6 +149,10 @@ parser.add_option("-n", "--next",
                   help="If true, check what was last project logged, and log the next one in internal list. Implies -r. Default: False.",
 		  action="store_true",
 		  default=False)
+
+parser.add_option("-s", "--smooth",
+                  help="For rate plots (in contrast to instantaneous data ones), use last [i-SMOOTH,i] data points for averaging at ith point. Default: 1.",
+		  default=1)
 
 (o,args) = parser.parse_args()
 
@@ -341,7 +345,6 @@ def make_plot(fn,type):
     type = whether you want raw values ('total') or their (approx. numeric) derivative vs. time ('speed')
   '''
 
-
   [out_string,tot,world] = proc_data(fn,type)
 
   subtit = title[t][type]
@@ -442,37 +445,43 @@ def proc_data(fn,type):
   elif type == 'speed':
     oline  = [0.0,0.0,0.0,0.0,0.0]
 
-    for line in lines:
-      line   = [float(x) for x in line.split()]
-      dt     = (line[0] - oline[0])/86400
-      dline  = [(line[i]  - oline[i])/dt for i in range(len(line))]
+    smooth_n = int(o.smooth)
+
+    for i in range(smooth_n,len(lines)):
+
+      linei = [float(x) for x in lines[i].split()]          # present, ith, line
+      liner = [float(x) for x in lines[i-smooth_n].split()] # reference line
+
+      dt   = linei[0] - liner[0]
+      dydt = [86400*(linei[j] - liner[j])/dt for j in range(1,len(linei))]
 
       tot = 0
-      for x in dline[1:]:
-        tot += x
-	if x > max_y:
-          max_y = x
+      for y in dydt:
+        tot += y
+	if y > max_y:
+	  max_y = y
 
       if o.total:
-        val = dline
+        val = [666]
+	val.extend(dydt)
 
       else:
         if tot != 0:
-          val  = [0.0,0.0,0.0,0.0,0.0]
-          for i in range(1,5):
-            val[i] = 100*dline[i]/tot
- 
-            if val[i] < 0:
-	      val[i] = 0
+	  val = [None]
+	  for j in range(1,5):
+	    va = 100*dydt[j]/tot
 
-	    elif val[i] > 100:
-	      val[i] = 100
+	    if va < 0:
+	      va = 0
+	      
+	    elif va > 100:
+	      va = 100
 
-      max_x = (line[0]-t0)/86400
-      out_string += "%9.3f %8.4f %8.4f %8.4f %8.4f\n" % tuple( [(line[0]-t0)/86400 , val[1], val[2], val[3], val[4]] )
+	    val.append(va)
 
-      oline  = copy.deepcopy(line)
-  
+      max_x       = (linei[0]-t0)/86400
+      out_string += "%9.3f %8.4f %8.4f %8.4f %8.4f\n" % (max_x , val[1], val[2], val[3], val[4])
+
   return [out_string,tot,[max_x,max_y]]
 
 #--------------------------------------------------------------------------------#
