@@ -30,7 +30,7 @@ For help, type:
 
 VERSION
 
-svn_revision = r23 (2008-12-02 18:36:15)
+svn_revision = r24 (2008-12-04 09:36:37)
 
 '''
 
@@ -154,11 +154,21 @@ parser.add_option("-s", "--smooth",
                   help="For rate plots (in contrast to instantaneous data ones), use last [i-SMOOTH,i] data points for averaging at ith point. Default: 1.",
 		  default=1)
 
+parser.add_option("-R", "--recent",
+                  help="Count hosts active hosts (those reporting at least one result in the last 30 days). Default: count all.",
+		  action="store_true",
+		  default=False)
+
 (o,args) = parser.parse_args()
 
 #--------------------------------------------------------------------------------#
 
-def host_stats(file=None):
+def host_stats(file=None,recent=False):
+
+  '''
+  The "recent" flag selects host active in the last "recent" days (rpc_time greater
+  than (date +%s - 30*86400)). If set to False, all computers are counted.
+  '''
 
   if file == None:
     sys.exit("bhs.host_stats: Need a file name to process!")
@@ -185,45 +195,88 @@ def host_stats(file=None):
   oth_stat_0 = 0
   oth_stat_1 = 0
 
-  # Distile file with Unix and connect to process:
-  f = os.popen('zcat host.gz | grep -F -e total_credit -e os_name')
+  if recent:
+    # rpc_time extraction pattern:
+    pattern    = r'rpc_time>([^<]+)<';
+    search_rpc = re.compile(pattern).search
+
+    # rpc threshold:
+    t_now = int(S.cli('date +%s',True)[0].replace('\n',''))
+    rpc_threshold = t_now - 30*86400 # 30 being the number of days to look back
+
+    # Distile file with Unix and connect to process:
+    f = os.popen('zcat host.gz | grep -F -e total_credit -e os_name -e rpc_time')
+
+    current_os = None
+    get_credit = True
+    for line in f:
+
+      if get_credit:
+	credit = float(search_cre(line).group(1))
+
+	get_credit = False
+	get_os     = True
+
+      elif get_os:
+        if 'Windows' in line:
+	  current_os = 'win'
+
+        elif 'Linux' in line:
+	  current_os = 'lin'
   
-  odd = True
-  for line in f:
+        elif 'Darwin' in line:
+	  current_os = 'dar'
   
-    if odd:
-      cre    = search_cre(line)
-      credit = float(cre.group(1))
-      odd    = False
+        else:
+	  current_os = 'oth'
+
+        get_os  = False
+	get_rpc = True
+
+      elif get_rpc:
+	rpc_t  = float(search_rpc(line).group(1))
+	if rpc_t > rpc_threshold:
+	  stat[current_os][0] += 1
+	  stat[current_os][1] += credit
+
+        get_rpc    = False
+	get_credit = True
+
+    f.close()
+
+  else:
+    # Distile file with Unix and connect to process:
+    f = os.popen('zcat host.gz | grep -F -e total_credit -e os_name')
   
-    else:
-      odd = True
-      if 'Windows' in line:
-        win_stat_0 += 1
-        win_stat_1 += credit
-  
-      elif 'Linux' in line:
-        lin_stat_0 += 1
-        lin_stat_1 += credit
-  
-      elif 'Darwin' in line:
-        dar_stat_0 += 1
-        dar_stat_1 += credit
+    odd = True
+    for line in f:
+      if odd:
+        credit = float(search_cre(line).group(1))
+        odd    = False
   
       else:
-        oth_stat_0 += 1
-        oth_stat_1 += credit
+        odd = True
+        if 'Windows' in line:
+	  stat['win'][0] += 1
+	  stat['win'][1] += credit
   
-  f.close()
+        elif 'Linux' in line:
+          stat['lin'][0] += 1
+          stat['lin'][1] += credit
+  
+        elif 'Darwin' in line:
+          stat['dar'][0] += 1
+          stat['dar'][1] += credit
+  
+        else:
+          stat['oth'][0] += 1
+          stat['oth'][1] += credit
+  
+    f.close()
 
-  stat['win'] = [win_stat_0,win_stat_1]
-  stat['lin'] = [lin_stat_0,lin_stat_1]
-  stat['dar'] = [dar_stat_0,dar_stat_1]
-  stat['oth'] = [oth_stat_0,oth_stat_1]
-  
   # Return output:
-  nstring = "%12i" % (S.now())
-  cstring = nstring
+  nstring = "%12i" % (S.now())  # string containing number of hosts info (nhosts)
+  cstring = nstring             # string containing amount of credit info (credit)
   for osy in os_list:
     nstring += "%9.0f "  % (stat[osy][0])
     try:
@@ -235,7 +288,7 @@ def host_stats(file=None):
 
 #--------------------------------------------------------------------------------#
 
-def save_log(project,stringa,stringb):
+def save_log(project,logfile,stringa,stringb):
 
   if (o.verbose):
     print 'Saving log...'
@@ -243,14 +296,15 @@ def save_log(project,stringa,stringb):
   if not re.search('\n',stringa): stringa += '\n'
   if not re.search('\n',stringb): stringb += '\n'
 
-  fn = os.environ['HOME']+'/.LOGs/boinc/'+project+'.nhosts.dat'
+  fn = '%s/.LOGs/boinc/%s.nhosts.dat' % (os.environ['HOME'], project)
   FM.w2file(fn,stringa,'a')
 
-  fn = os.environ['HOME']+'/.LOGs/boinc/'+project+'.credit.dat'
+  fn = '%s/.LOGs/boinc/%s.credit.dat' % (os.environ['HOME'], project)
   FM.w2file(fn,stringb,'a')
 
   stringc = "%-15s logged at %10s on %1s\n" % (project,S.hour(),S.day())
-  fn = os.environ['HOME']+'/.LOGs/boinc/entries.log'
+  fn      = '%s/.LOGs/boinc/%s' % (os.environ['HOME'],logfile)
+
   FM.w2file(fn,stringc,'a')
 
 #--------------------------------------------------------------------------------#
@@ -679,16 +733,20 @@ if o.retrieve:
   # Retrieve log:
   p[o.project].get_log()
 
-  # Process log:
+  # Process log and save (full version):
   (nstring,cstring) = host_stats('host.gz')
+  save_log(p[o.project].name,'entries.log',nstring,cstring)
 
-  # Save log:
-  save_log(p[o.project].name,nstring,cstring)
+  # Process log and save (only active machines):
+  if o.recent:
+    (nstring,cstring) = host_stats('host.gz',True)
+    pname = '%s_active' % (p[o.project].name)
+    save_log(pname,'entries_active.log',nstring,cstring)
 
   # Clean up, and say bye:
   if (o.verbose):
     print 'Deleting hosts.gz...'
-
+  
   os.unlink('host.gz')
 
   if (o.verbose):
@@ -724,5 +782,9 @@ else:
 
   for type in types:
     for t in ['credit','nhosts']:
-      fn =  '%s/.LOGs/boinc/%s.%s.dat' % (os.environ['HOME'], p[o.project].name, t)
+      if o.recent:
+        fn =  '%s/.LOGs/boinc/%s_active.%s.dat' % (os.environ['HOME'], p[o.project].name, t)
+
+      else:
+        fn =  '%s/.LOGs/boinc/%s.%s.dat' % (os.environ['HOME'], p[o.project].name, t)
       make_plot(fn,type)
