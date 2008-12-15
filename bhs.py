@@ -1,38 +1,35 @@
 #!/usr/bin/python
 # coding=utf-8
 
-'''
-BOINC Host Statistics
-(c) 2008, Iñaki Silanes
-
-LICENSE
-
-This program is free software; you can redistribute it and/or modify it
-under the terms of the GNU General Public License (version 2), as
-published by the Free Software Foundation.
-
-This program is distributed in the hope that it will be useful, but
-WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
-for more details (http://www.gnu.org/licenses/gpl.txt).
-
-DESCRIPTION
-
-It retrieves some stat file(s) from some BOINC project(s), and counts how many 
-hosts running it are Windows, Linux, BSD or Darwin (Mac OS X), and how much credit
-is each of them yielding.
-
-USAGE
-
-For help, type:
-
-% bhs.py -h
-
-VERSION
-
-svn_revision = r24 (2008-12-04 09:36:37)
-
-'''
+# BOINC Host Statistics
+# (c) 2008, Iñaki Silanes
+# 
+# LICENSE
+# 
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License (version 2), as
+# published by the Free Software Foundation.
+# 
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+# for more details (http://www.gnu.org/licenses/gpl.txt).
+# 
+# DESCRIPTION
+# 
+# It retrieves some stat file(s) from some BOINC project(s), and counts how many 
+# hosts running it are Windows, Linux, BSD or Darwin (Mac OS X), and how much credit
+# is each of them yielding.
+# 
+# USAGE
+# 
+# For help, type:
+# 
+# % bhs.py -h
+# 
+# VERSION
+# 
+# svn_revision = r25 (2008-12-15 18:57:37)
 
 import re
 import sys
@@ -296,15 +293,20 @@ def save_log(project,logfile,stringa,stringb):
   if not re.search('\n',stringa): stringa += '\n'
   if not re.search('\n',stringb): stringb += '\n'
 
-  fn = '%s/.LOGs/boinc/%s.nhosts.dat' % (os.environ['HOME'], project)
+  logdir = '%s/.LOGs/boinc' % (os.environ['HOME'])
+
+  # Number of hosts:
+  fn = '%s/%s.nhosts.dat' % (logdir, project)
   FM.w2file(fn,stringa,'a')
 
-  fn = '%s/.LOGs/boinc/%s.credit.dat' % (os.environ['HOME'], project)
+  # Amount of credit:
+  fn = '%s/%s.credit.dat' % (logdir, project)
   FM.w2file(fn,stringb,'a')
 
-  stringc = "%-15s logged at %10s on %1s\n" % (project,S.hour(),S.day())
-  fn      = '%s/.LOGs/boinc/%s' % (os.environ['HOME'],logfile)
-
+  # Log entry:
+  project = project.replace('_active','')
+  stringc = "%-16s logged at %10s on %1s\n" % (project,S.hour(),S.day())
+  fn      = '%s/%s' % (logdir,logfile)
   FM.w2file(fn,stringc,'a')
 
 #--------------------------------------------------------------------------------#
