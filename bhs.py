@@ -29,7 +29,7 @@
 # 
 # VERSION
 # 
-# svn_revision = r25 (2008-12-15 18:57:37)
+# svn_revision = r26 (2008-12-16 22:15:54)
 
 import re
 import sys
@@ -670,34 +670,52 @@ def last_perc(fn):
 
 #--------------------------------------------------------------------------------#
 
-def next_project(p=None, logfile=os.environ['HOME']+'/.LOGs/boinc/last.dat'):
+def next_project(p=None, logfile=os.environ['HOME']+'/.LOGs/boinc/entries.log'):
   '''
-  Read a log file to see which was the last project logged, and log the next one,
+  Read a log file to see which was the project logged longest ago, and log it,
   according to an internal list of the projects with the flag "logit=True".
   '''
 
-  log_those = []
+  # Reverse dictionary of p:
+  rev_p = {}
+  for item in p:
+    rev_p[p[item].name] = item
+
+  # Dic: project -> how long ago logged
+  ago = {}
   for k in p:
     if p[k].logit:
-      log_those.append(k) 
+      ago[k] = 0
 
-  log_those = sorted(log_those)
+  # Get reverse list of all log lines:
+  loglist = FM.file2array(logfile)
+  loglist.reverse()
+  
+  # Read list and populate "ago":
+  i = 1
+  for line in loglist:
 
-  try:
-    lastone = FM.file2array(logfile)[0]
+    pname = line.split()[0]
 
-    if lastone == log_those[-1]:
-      nextone = log_those[0]
+    if rev_p.has_key(pname):
+      rp = rev_p[pname]
+      if p[rp].logit:
+        if not ago[rp]:	ago[rp] = i
+        i = i + 1
 
-    else:
-      for i in range(len(log_those)):
-        if log_those[i] == lastone:
-	  nextone = log_those[i+1]
-	  break
-        
-  except:
-    lastone = 'malaria'
-    nextone = 'malaria'
+  # Decorate-Sort-Undecorate to sort by value:
+  decorated_list = []
+  for k in ago:
+    kv = [ago[k],k]
+    decorated_list.append(kv)
+
+  decorated_list.sort()
+
+  if not decorated_list[0][0]:      # if some project(s) hasn't been logged EVER, log it
+    nextone = decorated_list[0][1]
+  
+  else:                             # else, log the one longest ago logged
+    nextone = decorated_list[-1][1]
 
   FM.w2file(logfile,nextone+'\n')
 
@@ -728,6 +746,7 @@ if o.project == 'help':
 if o.next:
   o.project  = next_project(p)
   o.retrieve = True
+  sys.exit(o.project)
 
 # Actualy run:
 if o.retrieve:
