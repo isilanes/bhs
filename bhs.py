@@ -29,7 +29,7 @@
 # 
 # VERSION
 # 
-# svn_revision = r27 (2008-12-17 11:15:09)
+# svn_revision = r28 (2008-12-17 13:20:22)
 
 import re
 import sys
@@ -46,17 +46,17 @@ import WriteXMGR as WX
 
 #--------------------------------------------------------------------------------#
 
-class project:
+class prj:
   
-  def __init__(self,name=None,url=None,logit=False,stats=[]):
-    self.name  = name
-    self.url   = url
-    self.logit = logit
+  def __init__(self,n=None,u=None,l=False,s=[]):
+    self.name = n
+    self.url  = 'http://'+u
+    self.log  = l
 
     # stats is a 4-element list, with the values of last logged
     # Mcredit, kHosts, kDCGR and DINH (see code for explanations)
     # stats has no real value at all.
-    self.stats = stats
+    self.stats = s
 
   def get_hostgz(self):
     '''
@@ -86,21 +86,21 @@ class project:
 ########################################################
 
 p = {                                        
-      'poem'      : project( name = 'POEM@home',      url = 'http://boinc.fzk.de/poem/stats/host.gz',               logit = True,  stats = [  388,   28,  1247,   35] ),
-      'malaria'   : project( name = 'MalariaControl', url = 'http://www.malariacontrol.net/stats/host.gz',          logit = True,  stats = [  429,   60,   963,   40] ),
-      'qmc'       : project( name = 'QMC@home',       url = 'http://qah.uni-muenster.de/stats/host.gz',             logit = True,  stats = [ 1409,   74,  2185,   67] ),
-      'spinh'     : project( name = 'Spinhenge',      url = 'http://spin.fh-bielefeld.de/stats/host.gz',            logit = True,  stats = [  547,  103,  1039,   97] ),
-      'lhc'       : project( name = 'LHC@home',       url = 'http://lhcathome.cern.ch/lhcathome/stats/host.gz',     logit = True,  stats = [  213,  185,   152,  161] ),
-      'rosetta'   : project( name = 'Rosetta@home',   url = 'http://boinc.bakerlab.org/rosetta/stats/host.gz',      logit = True,  stats = [ 5199,  648,  7546,  502] ),
-      'einstein'  : project( name = 'Einstein@home',  url = 'http://einstein.phys.uwm.edu/stats/host_id.gz',        logit = True,  stats = [ 9357,  723, 13000,  849] ),
-      'seti'      : project( name = 'SETI@home',      url = 'http://setiathome.berkeley.edu/stats/host.gz',         logit = True,  stats = [36000, 2135, 55000, 1201] ),
-      'civis'     : project( name = 'IBERCIVIS',      url = 'http://ibercivis.es/stats/host.gz',                    logit = True,  stats = [] ),
-      'milky'     : project( name = 'MilkyWay@home',  url = 'http://milkyway.cs.rpi.edu/milkyway/stats/host.gz',    logit = True,  stats = [] ),
-      'abc'       : project( name = 'ABC@home',       url = 'http://abcathome.com/stats/host.gz',                   logit = True,  stats = [] ),
-      'prime'     : project( name = 'PrimeGrid',      url = 'http://www.primegrid.com/stats/host.gz',               logit = True,  stats = [] ),
-      'riesel'    : project( name = 'RieselSieve',    url = 'http://boinc.rieselsieve.com/stats/host_id.gz',        logit = False, stats = [] ),
-      'predictor' : project( name = 'Predictor@home', url = 'http://predictor.chem.lsa.umich.edu/stats/host_id.gz', logit = False, stats = [] ),
-    }
+ 'poem'      : prj(n='POEM@home',      u='boinc.fzk.de/poem/stats/host.gz',               l=True,  s=[  388,   28,  1247,   35]),
+ 'malaria'   : prj(n='MalariaControl', u='www.malariacontrol.net/stats/host.gz',          l=True,  s=[  429,   60,   963,   40]),
+ 'qmc'       : prj(n='QMC@home',       u='qah.uni-muenster.de/stats/host.gz',             l=True,  s=[ 1409,   74,  2185,   67]),
+ 'spinh'     : prj(n='Spinhenge',      u='spin.fh-bielefeld.de/stats/host.gz',            l=True,  s=[  547,  103,  1039,   97]),
+ 'lhc'       : prj(n='LHC@home',       u='lhcathome.cern.ch/lhcathome/stats/host.gz',     l=True,  s=[  213,  185,   152,  161]),
+ 'rosetta'   : prj(n='Rosetta@home',   u='boinc.bakerlab.org/rosetta/stats/host.gz',      l=True,  s=[ 5199,  648,  7546,  502]),
+ 'einstein'  : prj(n='Einstein@home',  u='einstein.phys.uwm.edu/stats/host_id.gz',        l=True,  s=[ 9357,  723, 13000,  849]),
+ 'seti'      : prj(n='SETI@home',      u='setiathome.berkeley.edu/stats/host.gz',         l=True,  s=[36000, 2135, 55000, 1201]),
+ 'civis'     : prj(n='IBERCIVIS',      u='ibercivis.es/stats/host.gz',                    l=True,  s=[]),
+ 'milky'     : prj(n='MilkyWay@home',  u='milkyway.cs.rpi.edu/milkyway/stats/host.gz',    l=True,  s=[]),
+ 'abc'       : prj(n='ABC@home',       u='abcathome.com/stats/host.gz',                   l=True,  s=[]),
+ 'prime'     : prj(n='PrimeGrid',      u='www.primegrid.com/stats/host.gz',               l=True,  s=[]),
+ 'riesel'    : prj(n='RieselSieve',    u='boinc.rieselsieve.com/stats/host_id.gz',        l=False, s=[]),
+ 'predictor' : prj(n='Predictor@home', u='predictor.chem.lsa.umich.edu/stats/host_id.gz', l=False, s=[]),
+ }
 
 ########################################################
 #                                                      #
@@ -673,7 +673,7 @@ def last_perc(fn):
 def next_project(p=None, logfile=os.environ['HOME']+'/.LOGs/boinc/entries.log'):
   '''
   Read a log file to see which was the project logged longest ago, and log it,
-  according to an internal list of the projects with the flag "logit=True".
+  according to an internal list of the projects with the flag "log=True".
   '''
 
   # Reverse dictionary of p:
@@ -684,7 +684,7 @@ def next_project(p=None, logfile=os.environ['HOME']+'/.LOGs/boinc/entries.log'):
   # Dic: project -> how long ago logged
   ago = {}
   for k in p:
-    if p[k].logit:
+    if p[k].log:
       ago[k] = 0
 
   # Get reverse list of all log lines:
@@ -699,7 +699,7 @@ def next_project(p=None, logfile=os.environ['HOME']+'/.LOGs/boinc/entries.log'):
 
     if rev_p.has_key(pname):
       rp = rev_p[pname]
-      if p[rp].logit:
+      if p[rp].log:
         if not ago[rp]:	ago[rp] = i
         i = i + 1
 
@@ -807,7 +807,7 @@ else:
     types.append('speed')
 
   for type in types:
-    for t in ['credit','nhosts']:
+    for t in ['nhosts','credit']:
       if o.recent:
         fn =  '%s/.LOGs/boinc/%s_active.%s.dat' % (os.environ['HOME'], p[o.project].name, t)
 
