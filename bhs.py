@@ -29,7 +29,7 @@
 # 
 # VERSION
 # 
-# svn_revision = r26 (2008-12-16 22:15:54)
+# svn_revision = r27 (2008-12-17 11:15:09)
 
 import re
 import sys
@@ -58,9 +58,9 @@ class project:
     # stats has no real value at all.
     self.stats = stats
 
-  def get_log(self):
+  def get_hostgz(self):
     '''
-    Retrieve the log file from the URL.
+    Retrieve the host.gz file from the URL.
     '''
 
     if (o.verbose):
@@ -717,8 +717,6 @@ def next_project(p=None, logfile=os.environ['HOME']+'/.LOGs/boinc/entries.log'):
   else:                             # else, log the one longest ago logged
     nextone = decorated_list[-1][1]
 
-  FM.w2file(logfile,nextone+'\n')
-
   return nextone
 
 #--------------------------------------------------------------------------------#
@@ -745,20 +743,21 @@ if o.project == 'help':
 # Choose project if automatic:
 if o.next:
   o.project  = next_project(p)
-  o.retrieve = True
-  sys.exit(o.project)
 
 # Actualy run:
 if o.retrieve:
 
-  # Retrieve log:
-  p[o.project].get_log()
+  if o.verbose:
+    print 'Will retrieve: %s' % (o.project)
 
-  # Process log and save (full version):
+  # Retrieve host.gz:
+  p[o.project].get_hostgz()
+
+  # Process host.gz and save (full version, all machines):
   (nstring,cstring) = host_stats('host.gz')
   save_log(p[o.project].name,'entries.log',nstring,cstring)
 
-  # Process log and save (only active machines):
+  # Process host.gz and save (only recently active machines):
   if o.recent:
     (nstring,cstring) = host_stats('host.gz',True)
     pname = '%s_active' % (p[o.project].name)
@@ -774,8 +773,11 @@ if o.retrieve:
     print 'Finished.'
 
 elif o.analize:
-  # Analize:
 
+  if o.verbose:
+    print 'Will analize: %s' % (o.project)
+
+  # Analize:
   t0   = 1201956633
   type = 'total'
   
@@ -792,6 +794,9 @@ elif o.analize:
 
 else:
   # Plot or save PNG
+
+  if o.verbose:
+    print 'Will plot: %s' % (o.project)
 
   t0   = 1201956633
   tmpf = 'boinc.tmp'
