@@ -29,7 +29,7 @@
 # 
 # VERSION
 # 
-# svn_revision = r28 (2008-12-17 13:20:22)
+# svn_revision = r29 (2008-12-19 10:35:18)
 
 import re
 import sys
@@ -43,6 +43,7 @@ import DataManipulation as DM
 import FileManipulation as FM
 import System as S
 import WriteXMGR as WX
+import Time as T
 
 #--------------------------------------------------------------------------------#
 
@@ -156,6 +157,11 @@ parser.add_option("-R", "--recent",
 		  action="store_true",
 		  default=False)
 
+parser.add_option("-y", "--dryrun",
+                  help="Perform a dry run: just tell what would be done, but don't do it. Default: real run (plotting, if nothing else is specified).",
+		  action="store_true",
+		  default=False)
+
 (o,args) = parser.parse_args()
 
 #--------------------------------------------------------------------------------#
@@ -198,7 +204,8 @@ def host_stats(file=None,recent=False):
     search_rpc = re.compile(pattern).search
 
     # rpc threshold:
-    t_now = int(S.cli('date +%s',True)[0].replace('\n',''))
+    #t_now = int(S.cli('date +%s',True)[0].replace('\n',''))
+    t_now = T.now()
     rpc_threshold = t_now - 30*86400 # 30 being the number of days to look back
 
     # Distile file with Unix and connect to process:
@@ -272,7 +279,7 @@ def host_stats(file=None,recent=False):
     f.close()
 
   # Return output:
-  nstring = "%12i" % (S.now())  # string containing number of hosts info (nhosts)
+  nstring = "%12i" % (T.now())  # string containing number of hosts info (nhosts)
   cstring = nstring             # string containing amount of credit info (credit)
   for osy in os_list:
     nstring += "%9.0f "  % (stat[osy][0])
@@ -305,7 +312,7 @@ def save_log(project,logfile,stringa,stringb):
 
   # Log entry:
   project = project.replace('_active','')
-  stringc = "%-16s logged at %10s on %1s\n" % (project,S.hour(),S.day())
+  stringc = "%-16s logged at %10s on %1s\n" % (project,T.hour(),T.day())
   fn      = '%s/%s' % (logdir,logfile)
   FM.w2file(fn,stringc,'a')
 
@@ -685,14 +692,13 @@ def next_project(p=None, logfile=os.environ['HOME']+'/.LOGs/boinc/entries.log'):
   ago = {}
   for k in p:
     if p[k].log:
-      ago[k] = 0
+      ago[k] = -1
 
   # Get reverse list of all log lines:
   loglist = FM.file2array(logfile)
   loglist.reverse()
   
   # Read list and populate "ago":
-  i = 1
   for line in loglist:
 
     pname = line.split()[0]
@@ -700,8 +706,9 @@ def next_project(p=None, logfile=os.environ['HOME']+'/.LOGs/boinc/entries.log'):
     if rev_p.has_key(pname):
       rp = rev_p[pname]
       if p[rp].log:
-        if not ago[rp]:	ago[rp] = i
-        i = i + 1
+        if ago[rp] < 0:
+	  agon    = line.split()[-1]
+	  ago[rp] = T.days_ago(agon)
 
   # Decorate-Sort-Undecorate to sort by value:
   decorated_list = []
@@ -710,14 +717,17 @@ def next_project(p=None, logfile=os.environ['HOME']+'/.LOGs/boinc/entries.log'):
     decorated_list.append(kv)
 
   decorated_list.sort()
+  print decorated_list
 
-  if not decorated_list[0][0]:      # if some project(s) hasn't been logged EVER, log it
+  dago = 0
+  if decorated_list[0][0] == -1:      # if some project(s) hasn't been logged EVER, log it
     nextone = decorated_list[0][1]
   
   else:                             # else, log the one longest ago logged
     nextone = decorated_list[-1][1]
+    dago    = decorated_list[-1][0]
 
-  return nextone
+  return nextone, dago
 
 #--------------------------------------------------------------------------------#
 
@@ -742,11 +752,15 @@ if o.project == 'help':
 
 # Choose project if automatic:
 if o.next:
-  o.project  = next_project(p)
+  o.project, dago = next_project(p)
 
 # Actualy run:
-if o.retrieve:
+if o.dryrun:
+  print 'Would select: %s' % (o.project)
+  if o.next:
+    print "Project last logged: %i days ago" % (dago)
 
+elif o.retrieve:
   if o.verbose:
     print 'Will retrieve: %s' % (o.project)
 
