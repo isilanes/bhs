@@ -29,7 +29,7 @@
 # 
 # VERSION
 # 
-# svn_revision = r29 (2008-12-19 10:35:18)
+# svn_revision = r30 (2008-12-22 12:17:01)
 
 import re
 import sys
@@ -130,8 +130,8 @@ parser.add_option("-r", "--retrieve",
 
 parser.add_option("-v", "--verbose",
                   help="Be verbose. Default: don't be.",
-		  action="store_true",
-		  default=False)
+		  action="count",
+		  default=0)
 
 parser.add_option("-a", "--analize",
                   help="Instead of plotting, guess which OS will overtake Windows, and when.",
@@ -366,8 +366,6 @@ def make_plot_new(fn,type,t='total'):
   miny = round2val(miny,dy)
   maxy = round2val(maxy,dy,True)
   maxx = round2val(xcol[-1],dx,True)
-
-  print dy,miny,maxy
 
   data  = WX.XYset(xcol,ycol)
   graph = WX.Graph(data)
@@ -717,19 +715,24 @@ def next_project(p=None, logfile=os.environ['HOME']+'/.LOGs/boinc/entries.log'):
     decorated_list.append(kv)
 
   decorated_list.sort()
-  print decorated_list
+  if o.verbose > 1:
+    for item in decorated_list:
+      print "%3i  %s" % tuple(item)
 
   dago = 0
   if decorated_list[0][0] == -1:      # if some project(s) hasn't been logged EVER, log it
     nextone = decorated_list[0][1]
   
-  else:                             # else, log the one longest ago logged
+  else:                               # else, log the one longest ago logged
     nextone = decorated_list[-1][1]
     dago    = decorated_list[-1][0]
 
   return nextone, dago
 
 #--------------------------------------------------------------------------------#
+
+if o.dryrun:
+  o.verbose += 1
 
 # --- Start with the run thing --- #
 
