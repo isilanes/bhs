@@ -29,7 +29,7 @@
 # 
 # VERSION
 # 
-# svn_revision = r30 (2008-12-22 12:17:01)
+# svn_revision = r31 (2009-01-08 13:41:29)
 
 import re
 import sys
@@ -731,6 +731,9 @@ def next_project(p=None, logfile=os.environ['HOME']+'/.LOGs/boinc/entries.log'):
 
 #--------------------------------------------------------------------------------#
 
+# Ask not to suspend/hibernate while running:
+S.keep_me_up('start','bhs')
+
 if o.dryrun:
   o.verbose += 1
 
@@ -831,3 +834,6 @@ else:
       else:
         fn =  '%s/.LOGs/boinc/%s.%s.dat' % (os.environ['HOME'], p[o.project].name, t)
       make_plot(fn,type)
+
+# Lastly, let the computer suspend/hibernate if it wants to:
+S.keep_me_up('stop','bhs')
