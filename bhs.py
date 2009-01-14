@@ -29,7 +29,7 @@
 # 
 # VERSION
 # 
-# svn_revision = r31 (2009-01-08 13:41:29)
+# svn_revision = r32 (2009-01-14 13:46:59)
 
 import re
 import sys
@@ -204,7 +204,6 @@ def host_stats(file=None,recent=False):
     search_rpc = re.compile(pattern).search
 
     # rpc threshold:
-    #t_now = int(S.cli('date +%s',True)[0].replace('\n',''))
     t_now = T.now()
     rpc_threshold = t_now - 30*86400 # 30 being the number of days to look back
 
@@ -456,8 +455,9 @@ def make_plot(fn,type):
 
     world = [10*x for x in ticks]
     yscale = "x 10\S%s" % (len(str(scale[1]))-1)
-    cmnd = '%s -noask -nxy %s -p %s -pexec \'SUBTITLE "%s"\' -pexec \'TITLE "%s"\' -pexec \'yaxis  label "%s"\' ' % (xmgr,tmpf,parf,subtit,tit,yscale)
-    cmnd = '%s -pexec "yaxis  tick major %i" -pexec "world ymax %f" %s' % (cmnd,ticks[1],world[1],xtra)
+    cmnd  = '%s -noask -nxy %s -p %s -pexec \'SUBTITLE "%s"\' '        % (xmgr,tmpf,parf,subtit,)
+    cmnd += ' -pexec \'TITLE "%s"\' -pexec \'yaxis  label "%s"\' '     % (tit,yscale)
+    cmnd += ' -pexec "yaxis  tick major %i" -pexec "world ymax %f" %s' % (ticks[1],world[1],xtra)
     S.cli(cmnd)
 
   else:
@@ -622,7 +622,7 @@ def fit_n_cross(fn,type='total',order=1,npoints=5):
     txt += 'perc  = f1(time)\n'
 
     FM.w2file('octave.tmp',txt)
-    out = S.cli('/usr/bin/octave -q octave.tmp',True)
+    out = S.cli('/usr/bin/octave -q octave.tmp',1).split('\n')
     os.unlink('octave.tmp')
 
     # Print output:
@@ -638,11 +638,11 @@ def fit_n_cross(fn,type='total',order=1,npoints=5):
     else:
       time_sec  = time*24*3600
       date_sec  = t0 + time_sec
-      now_sec   = float(S.cli('date +\%s',True)[0])
+      now_sec   = float(S.cli('date +\%s',1).split('\n')[0])
       elap_sec  = date_sec - now_sec
       elap_days = elap_sec/(24*3600)
       if elap_days < 10000:
-        date = S.cli('date -d "+%i days" +%%F' % (elap_days),True)[0].replace('\n','')
+        date = S.cli('date -d "+%i days" +%%F' % (elap_days),1).split('\n')[0].replace('\n','')
       else:
         date = 'Muuu tarde'
       frac = 100*(end-begin)/time
@@ -656,7 +656,7 @@ def last_perc(fn):
   '''
 
   cmnd = 'tail -1 %s' % (fn)
-  line = S.cli(cmnd,True)
+  line = S.cli(cmnd,1).split('\n')
 
   vals = [float(x) for x in line[0].split()]
   
