@@ -2,7 +2,7 @@
 # coding=utf-8
 
 # BOINC Host Statistics
-# (c) 2008, Iñaki Silanes
+# (c) 2008-2009, Iñaki Silanes
 # 
 # LICENSE
 # 
@@ -29,7 +29,7 @@
 # 
 # VERSION
 # 
-# svn_revision = r32 (2009-01-14 13:46:59)
+# svn_revision = r33 (2009-03-30 09:44:28)
 
 import re
 import sys
@@ -641,12 +641,13 @@ def fit_n_cross(fn,type='total',order=1,npoints=5):
       now_sec   = float(S.cli('date +\%s',1).split('\n')[0])
       elap_sec  = date_sec - now_sec
       elap_days = elap_sec/(24*3600)
-      if elap_days < 10000:
+      if elap_days < 5000:
         date = S.cli('date -d "+%i days" +%%F' % (elap_days),1).split('\n')[0].replace('\n','')
       else:
         date = 'Muuu tarde'
-      frac = 100*(end-begin)/time
-      print "%-6s will cross Windows in %8.1f days (%s) R = %8.6f | C = %5.1f%%" % (so[i-1], elap_days, date, rpar[i-1], frac)
+      frac = 100.0*(end-begin)/time
+      elap_months = elap_days/30.0
+      print "%-6s will cross Windows in %6.1f months (%s) R = %8.6f | C = %5.1f%%" % (so[i-1], elap_months, date, rpar[i-1], frac)
 
 #--------------------------------------------------------------------------------#
 
