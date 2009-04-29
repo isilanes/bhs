@@ -641,13 +641,22 @@ def fit_n_cross(fn,type='total',order=1,npoints=5):
       now_sec   = float(S.cli('date +\%s',1).split('\n')[0])
       elap_sec  = date_sec - now_sec
       elap_days = elap_sec/(24*3600)
-      if elap_days < 5000:
+      if elap_days < 3650:
         date = S.cli('date -d "+%i days" +%%F' % (elap_days),1).split('\n')[0].replace('\n','')
       else:
-        date = 'Muuu tarde'
+        date = '***'
       frac = 100.0*(end-begin)/time
-      elap_months = elap_days/30.0
-      print "%-6s will cross Windows in %6.1f months (%s) R = %8.6f | C = %5.1f%%" % (so[i-1], elap_months, date, rpar[i-1], frac)
+
+      if elap_days > 3650:
+        forecast = '%5.1f years ' % (elap_days/365.0)
+
+      elif elap_days > 90:
+        forecast = '%5.1f months' % (elap_days/30.0)
+
+      else:
+        forecast = '%5.1f days  ' % (elap_days)
+
+      print "%-6s will cross Windows in %s (%s) R = %8.6f | C = %5.1f%%" % (so[i-1], forecast, date, rpar[i-1], frac)
 
 #--------------------------------------------------------------------------------#
 
