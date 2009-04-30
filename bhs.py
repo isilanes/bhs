@@ -422,11 +422,9 @@ def make_plot(fn,type):
 
   FM.w2file(tmpf,out_string)
 
-  xtra = ' '
   if o.png:
     fout = fn.replace('.dat','_'+type+'.png')
     fout = fout.replace('@','_at_')
-    xtra += '-hardcopy -hdevice PNG -pexec \'page size 1920, 1440\' -printfile '+fout
 
   if o.total:
     parf = os.environ['HOME']+'/.LOGs/boinc/boinc_total.par'
@@ -461,9 +459,14 @@ def make_plot(fn,type):
     S.cli(cmnd)
 
   else:
-    parf = os.environ['HOME']+'/.LOGs/boinc/boinc.par'
-    str1 = xmgr+' -noask -nxy '+tmpf+' -p '+parf+' -pexec \'SUBTITLE "'+subtit+'"\' -pexec \'TITLE "'+tit+'"\' '
-    S.cli(str1+xtra)
+    parf   = os.environ['HOME']+'/.LOGs/boinc/boinc.par'
+    string = ' -nxy %s -p %s -pexec \'SUBTITLE "%s"\' -pexec \'TITLE "%s"\'' % (tmpf, parf, subtit, tit)
+
+    if o.png:
+      DM.xmgrace(string,fn=fout)
+
+    else:
+      DM.xmgrace(string)
 
   os.unlink(tmpf)
 
