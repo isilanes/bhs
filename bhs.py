@@ -830,7 +830,7 @@ else:
 
   t0   = 1201956633
   tmpf = 'boinc.tmp'
-  xmgr = 'xmgrace -barebones -geom 1000x800 -fixed 650 500 '
+  xmgr = 'xmgrace -barebones -geom 1050x900 -fixed 650 500 '
 
   types = ['total']
   if o.total:
