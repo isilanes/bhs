@@ -460,13 +460,14 @@ def make_plot(fn,type):
 
   else:
     parf   = os.environ['HOME']+'/.LOGs/boinc/boinc.par'
-    string = ' -nxy %s -p %s -pexec \'SUBTITLE "%s"\' -pexec \'TITLE "%s"\'' % (tmpf, parf, subtit, tit)
+    #string = ' -nxy %s -p %s -pexec \'SUBTITLE "%s"\' -pexec \'TITLE "%s"\'' % (tmpf, parf, subtit, tit)
+    string = ' -pexec \'SUBTITLE "%s"\' -pexec \'TITLE "%s"\'' % (subtit, tit)
 
     if o.png:
-      DM.xmgrace(string,fn=fout)
+      DM.xmgrace([tmpf],parf,pexec=string,fn=fout)
 
     else:
-      DM.xmgrace(string)
+      DM.xmgrace([tmpf],parf,pexec=string)
 
   os.unlink(tmpf)
 
