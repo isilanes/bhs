@@ -453,21 +453,20 @@ def make_plot(fn,type):
 
     world = [10*x for x in ticks]
     yscale = "x 10\S%s" % (len(str(scale[1]))-1)
-    cmnd  = '%s -noask -nxy %s -p %s -pexec \'SUBTITLE "%s"\' '        % (xmgr,tmpf,parf,subtit,)
-    cmnd += ' -pexec \'TITLE "%s"\' -pexec \'yaxis  label "%s"\' '     % (tit,yscale)
-    cmnd += ' -pexec "yaxis  tick major %i" -pexec "world ymax %f" %s' % (ticks[1],world[1],xtra)
-    S.cli(cmnd)
+
+    pexec  = ' -pexec \'SUBTITLE "%s"\' '                           % (subtit)
+    pexec += ' -pexec \'TITLE "%s"\' -pexec \'yaxis  label "%s"\' ' % (tit,yscale)
+    pexec += ' -pexec "yaxis  tick major %i" -pexec "world ymax %f"' % (ticks[1],world[1])
 
   else:
     parf   = os.environ['HOME']+'/.LOGs/boinc/boinc.par'
-    #string = ' -nxy %s -p %s -pexec \'SUBTITLE "%s"\' -pexec \'TITLE "%s"\'' % (tmpf, parf, subtit, tit)
-    string = ' -pexec \'SUBTITLE "%s"\' -pexec \'TITLE "%s"\'' % (subtit, tit)
+    pexec = ' -pexec \'SUBTITLE "%s"\' -pexec \'TITLE "%s"\'' % (subtit, tit)
 
-    if o.png:
-      DM.xmgrace([tmpf],parf,pexec=string,fn=fout)
+  if o.png:
+    DM.xmgrace([tmpf],parf,pexec=string,fn=fout)
 
-    else:
-      DM.xmgrace([tmpf],parf,pexec=string)
+  else:
+    DM.xmgrace([tmpf],parf,pexec=pexec)
 
   os.unlink(tmpf)
 
