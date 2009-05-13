@@ -37,7 +37,7 @@ import os
 import optparse
 import copy
 
-sys.path.append(os.environ['HOME']+'/WCs/PythonModules')
+sys.path.append(os.environ['HOME']+'/bzr/pythonlibs')
 
 import DataManipulation as DM
 import FileManipulation as FM
