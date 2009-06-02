@@ -463,7 +463,7 @@ def make_plot(fn,type):
     pexec = ' -pexec \'SUBTITLE "%s"\' -pexec \'TITLE "%s"\'' % (subtit, tit)
 
   if o.png:
-    DM.xmgrace([tmpf],parf,pexec=string,fn=fout)
+    DM.xmgrace([tmpf],parf,pexec=pexec,fn=fout)
 
   else:
     DM.xmgrace([tmpf],parf,pexec=pexec)
