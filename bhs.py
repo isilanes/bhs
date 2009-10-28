@@ -91,7 +91,6 @@ p = {
  'malaria'   : prj(n='MalariaControl', u='www.malariacontrol.net/stats/host.gz',          l=True,  s=[  429,   60,   963,   40]),
  'qmc'       : prj(n='QMC@home',       u='qah.uni-muenster.de/stats/host.gz',             l=True,  s=[ 1409,   74,  2185,   67]),
  'spinh'     : prj(n='Spinhenge',      u='spin.fh-bielefeld.de/stats/host.gz',            l=True,  s=[  547,  103,  1039,   97]),
- 'lhc'       : prj(n='LHC@home',       u='lhcathome.cern.ch/lhcathome/stats/host.gz',     l=True,  s=[  213,  185,   152,  161]),
  'rosetta'   : prj(n='Rosetta@home',   u='boinc.bakerlab.org/rosetta/stats/host.gz',      l=True,  s=[ 5199,  648,  7546,  502]),
  'einstein'  : prj(n='Einstein@home',  u='einstein.phys.uwm.edu/stats/host_id.gz',        l=True,  s=[ 9357,  723, 13000,  849]),
  'seti'      : prj(n='SETI@home',      u='setiathome.berkeley.edu/stats/host.gz',         l=True,  s=[36000, 2135, 55000, 1201]),
@@ -101,6 +100,7 @@ p = {
  'prime'     : prj(n='PrimeGrid',      u='www.primegrid.com/stats/host.gz',               l=True,  s=[]),
  'riesel'    : prj(n='RieselSieve',    u='boinc.rieselsieve.com/stats/host_id.gz',        l=False, s=[]),
  'predictor' : prj(n='Predictor@home', u='predictor.chem.lsa.umich.edu/stats/host_id.gz', l=False, s=[]),
+ 'lhc'       : prj(n='LHC@home',       u='lhcathome.cern.ch/lhcathome/stats/host.gz',     l=False, s=[  213,  185,   152,  161]),
  }
 
 ########################################################
