@@ -2,7 +2,7 @@
 # coding=utf-8
 
 # BOINC Host Statistics
-# (c) 2008-2009, Iñaki Silanes
+# (c) 2008-2010, Iñaki Silanes
 # 
 # LICENSE
 # 
@@ -27,9 +27,6 @@
 # 
 # % bhs.py -h
 # 
-# VERSION
-# 
-# svn_revision = r33 (2009-03-30 09:44:28)
 
 import re
 import sys
@@ -37,7 +34,7 @@ import os
 import optparse
 import copy
 
-sys.path.append(os.environ['HOME']+'/bzr/pythonlibs')
+sys.path.append(os.environ['HOME']+'/git/pythonlibs')
 
 import DataManipulation as DM
 import FileManipulation as FM
@@ -153,7 +150,7 @@ parser.add_option("-s", "--smooth",
 		  default=1)
 
 parser.add_option("-R", "--recent",
-                  help="Count hosts active hosts (those reporting at least one result in the last 30 days). Default: count all.",
+                  help="Count and log also active hosts (those reporting results in the last 30 days). Default: count and log only all hosts.",
 		  action="store_true",
 		  default=False)
 
