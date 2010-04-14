@@ -91,7 +91,7 @@ p = {
  'rosetta'   : prj(n='Rosetta@home',   u='boinc.bakerlab.org/rosetta/stats/host.gz',      l=True,  s=[ 5199,  648,  7546,  502]),
  'einstein'  : prj(n='Einstein@home',  u='einstein.phys.uwm.edu/stats/host_id.gz',        l=True,  s=[ 9357,  723, 13000,  849]),
  'seti'      : prj(n='SETI@home',      u='setiathome.berkeley.edu/stats/host.gz',         l=True,  s=[36000, 2135, 55000, 1201]),
- 'civis'     : prj(n='IBERCIVIS',      u='ibercivis.es/stats/host.gz',                    l=True,  s=[]),
+ 'civis'     : prj(n='IBERCIVIS',      u='ibercivis.es/stats/host.gz',                    l=False, s=[]),
  'milky'     : prj(n='MilkyWay@home',  u='milkyway.cs.rpi.edu/milkyway/stats/host.gz',    l=True,  s=[]),
  'abc'       : prj(n='ABC@home',       u='abcathome.com/stats/host.gz',                   l=True,  s=[]),
  'prime'     : prj(n='PrimeGrid',      u='www.primegrid.com/stats/host.gz',               l=True,  s=[]),
