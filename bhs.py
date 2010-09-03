@@ -451,13 +451,15 @@ def make_plot(fn,type):
     world = [10*x for x in ticks]
     yscale = "x 10\S%s" % (len(str(scale[1]))-1)
 
-    pexec  = ' -pexec \'SUBTITLE "%s"\' '                           % (subtit)
-    pexec += ' -pexec \'TITLE "%s"\' -pexec \'yaxis  label "%s"\' ' % (tit,yscale)
-    pexec += ' -pexec "yaxis  tick major %i" -pexec "world ymax %f"' % (ticks[1],world[1])
+    pexec = [' -pexec \'SUBTITLE "{0}"\' '.format(subtit)]
+    pexec.append('\'TITLE "{0}"\''.format(tit))
+    pexec.append('\'yaxis  label "{0}"\' '.format(yscale))
+    pexec.append('"yaxis  tick major {0}"'.format(ticks[1]))
+    pexec.append('"world ymax {0}"'.fomat(world[1]))
 
   else:
     parf   = os.environ['HOME']+'/.LOGs/boinc/boinc.par'
-    pexec = ' -pexec \'SUBTITLE "%s"\' -pexec \'TITLE "%s"\'' % (subtit, tit)
+    pexec = ['\'SUBTITLE "{0}"\''.format(subtit),'\'TITLE "{0}"\''.format(tit)]
 
   if o.png:
     DM.xmgrace([tmpf],parf,pexec=pexec,fn=fout)
