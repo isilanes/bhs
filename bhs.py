@@ -35,6 +35,7 @@ import optparse
 import copy
 
 sys.path.append(os.environ['HOME']+'/git/pythonlibs')
+sys.path.append('/usr/lib/python2.7/site-packages')
 
 import DataManipulation as DM
 import FileManipulation as FM
