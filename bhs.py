@@ -2,7 +2,7 @@
 # coding=utf-8
 
 # BOINC Host Statistics
-# (c) 2008-2010, Iñaki Silanes
+# (c) 2008-2014, Iñaki Silanes
 # 
 # LICENSE
 # 
@@ -45,6 +45,7 @@ import Time as T
 #--------------------------------------------------------------------------------#
 
 class prj(object):
+
     def __init__(self,n=None,u=None,l=False,s=[]):
         self.name = n
         self.url  = 'http://'+u
@@ -59,16 +60,16 @@ class prj(object):
         '''Retrieve the host.gz file from the URL.'''
 
         if (o.verbose):
-          print 'Retrieving stats file...'
+            print 'Retrieving stats file...'
 
         # Limit bw usage, in KiB/s:
         bwlimit = 100
 
         if o.verbose:
-          cmnd = 'wget --limit-rate=%ik    %s -O host.gz' % (bwlimit,self.url)
+            cmnd = 'wget --limit-rate=%ik    %s -O host.gz' % (bwlimit,self.url)
 
         else:
-          cmnd = 'wget --limit-rate=%ik -q %s -O host.gz' % (bwlimit,self.url)
+            cmnd = 'wget --limit-rate=%ik -q %s -O host.gz' % (bwlimit,self.url)
 
         S.cli(cmnd)
 
@@ -666,10 +667,8 @@ def last_perc(fn):
 
 
 def next_project(p=None, logfile=os.environ['HOME']+'/.LOGs/boinc/entries.log'):
-  '''
-  Read a log file to see which was the project logged longest ago, and log it,
-  according to an internal list of the projects with the flag "log=True".
-  '''
+  '''Read a log file to see which was the project logged longest ago, and log it,
+  according to an internal list of the projects with the flag "log=True".'''
 
   # Reverse dictionary of p:
   rev_p = {}
