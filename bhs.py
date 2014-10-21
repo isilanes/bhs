@@ -32,7 +32,6 @@ import re
 import sys
 import os
 import optparse
-import copy
 
 sys.path.append(os.environ['HOME']+'/git/pythonlibs')
 sys.path.append('/usr/lib/python2.7/site-packages')
@@ -45,36 +44,34 @@ import Time as T
 
 #--------------------------------------------------------------------------------#
 
-class prj:
-  
-  def __init__(self,n=None,u=None,l=False,s=[]):
-    self.name = n
-    self.url  = 'http://'+u
-    self.log  = l
+class prj(object):
+    def __init__(self,n=None,u=None,l=False,s=[]):
+        self.name = n
+        self.url  = 'http://'+u
+        self.log  = l
 
-    # stats is a 4-element list, with the values of last logged
-    # Mcredit, kHosts, kDCGR and DINH (see code for explanations)
-    # stats has no real value at all.
-    self.stats = s
+        # stats is a 4-element list, with the values of last logged
+        # Mcredit, kHosts, kDCGR and DINH (see code for explanations)
+        # stats has no real value at all.
+        self.stats = s
 
-  def get_hostgz(self):
-    '''
-    Retrieve the host.gz file from the URL.
-    '''
+    def get_hostgz(self):
+        '''Retrieve the host.gz file from the URL.'''
 
-    if (o.verbose):
-      print 'Retrieving stats file...'
+        if (o.verbose):
+          print 'Retrieving stats file...'
 
-    # Limit bw usage, in KiB/s:
-    bwlimit = 100
+        # Limit bw usage, in KiB/s:
+        bwlimit = 100
 
-    if o.verbose:
-      cmnd = 'wget --limit-rate=%ik    %s -O host.gz' % (bwlimit,self.url)
+        if o.verbose:
+          cmnd = 'wget --limit-rate=%ik    %s -O host.gz' % (bwlimit,self.url)
 
-    else:
-      cmnd = 'wget --limit-rate=%ik -q %s -O host.gz' % (bwlimit,self.url)
+        else:
+          cmnd = 'wget --limit-rate=%ik -q %s -O host.gz' % (bwlimit,self.url)
 
-    S.cli(cmnd)
+        S.cli(cmnd)
+
 
 #--------------------------------------------------------------------------------#
 
@@ -87,7 +84,7 @@ class prj:
 p = {                                        
  'poem'      : prj(n='POEM@home',      u='boinc.fzk.de/poem/stats/host.gz',               l=True,  s=[  388,   28,  1247,   35]),
  'malaria'   : prj(n='MalariaControl', u='www.malariacontrol.net/stats/host.gz',          l=True,  s=[  429,   60,   963,   40]),
- 'qmc'       : prj(n='QMC@home',       u='qah.uni-muenster.de/stats/host.gz',             l=True,  s=[ 1409,   74,  2185,   67]),
+ #'qmc'       : prj(n='QMC@home',       u='qah.uni-muenster.de/stats/host.gz',             l=True,  s=[ 1409,   74,  2185,   67]),
  'spinh'     : prj(n='Spinhenge',      u='spin.fh-bielefeld.de/stats/host.gz',            l=True,  s=[  547,  103,  1039,   97]),
  'rosetta'   : prj(n='Rosetta@home',   u='boinc.bakerlab.org/rosetta/stats/host.gz',      l=True,  s=[ 5199,  648,  7546,  502]),
  'einstein'  : prj(n='Einstein@home',  u='einstein.phys.uwm.edu/stats/host_id.gz',        l=True,  s=[ 9357,  723, 13000,  849]),
@@ -165,11 +162,8 @@ parser.add_option("-y", "--dryrun",
 #--------------------------------------------------------------------------------#
 
 def host_stats(file=None,recent=False):
-
-  '''
-  The "recent" flag selects host active in the last "recent" days (rpc_time greater
-  than (date +%s - 30*86400)). If set to False, all computers are counted.
-  '''
+  '''The "recent" flag selects host active in the last "recent" days (rpc_time greater
+  than (date +%s - 30*86400)). If set to False, all computers are counted.'''
 
   if file == None:
     sys.exit("bhs.host_stats: Need a file name to process!")
@@ -187,15 +181,6 @@ def host_stats(file=None,recent=False):
   pattern    = r'total_credit>([^<]+)<';
   search_cre = re.compile(pattern).search
   
-  win_stat_0 = 0
-  win_stat_1 = 0
-  lin_stat_0 = 0
-  lin_stat_1 = 0
-  dar_stat_0 = 0
-  dar_stat_1 = 0
-  oth_stat_0 = 0
-  oth_stat_1 = 0
-
   if recent:
     # rpc_time extraction pattern:
     pattern    = r'rpc_time>([^<]+)<';
@@ -290,30 +275,28 @@ def host_stats(file=None,recent=False):
 #--------------------------------------------------------------------------------#
 
 def save_log(project,logfile,stringa,stringb):
+    if (o.verbose):
+        print 'Saving log...'
+  
+    if not re.search('\n',stringa): stringa += '\n'
+    if not re.search('\n',stringb): stringb += '\n'
+  
+    logdir = '%s/.LOGs/boinc' % (os.environ['HOME'])
+  
+    # Number of hosts:
+    fn = '%s/%s.nhosts.dat' % (logdir, project)
+    FM.w2file(fn,stringa,'a')
+  
+    # Amount of credit:
+    fn = '%s/%s.credit.dat' % (logdir, project)
+    FM.w2file(fn,stringb,'a')
+  
+    # Log entry:
+    project = project.replace('_active','')
+    stringc = "%-16s logged at %10s on %1s\n" % (project,T.hour(),T.day())
+    fn      = '%s/%s' % (logdir,logfile)
+    FM.w2file(fn,stringc,'a')
 
-  if (o.verbose):
-    print 'Saving log...'
-
-  if not re.search('\n',stringa): stringa += '\n'
-  if not re.search('\n',stringb): stringb += '\n'
-
-  logdir = '%s/.LOGs/boinc' % (os.environ['HOME'])
-
-  # Number of hosts:
-  fn = '%s/%s.nhosts.dat' % (logdir, project)
-  FM.w2file(fn,stringa,'a')
-
-  # Amount of credit:
-  fn = '%s/%s.credit.dat' % (logdir, project)
-  FM.w2file(fn,stringb,'a')
-
-  # Log entry:
-  project = project.replace('_active','')
-  stringc = "%-16s logged at %10s on %1s\n" % (project,T.hour(),T.day())
-  fn      = '%s/%s' % (logdir,logfile)
-  FM.w2file(fn,stringc,'a')
-
-#--------------------------------------------------------------------------------#
 
 def make_plot_new(fn,type,t='total'):
   '''
@@ -375,7 +358,6 @@ def make_plot_new(fn,type,t='total'):
   cmnd = '/usr/bin/xmgrace -barebones -geom 975x725 -fixed 600 420 -noask -nxy %s' % (tmpf)
   S.cli(cmnd)
 
-#--------------------------------------------------------------------------------#
 
 def round2val(number=0,rounder=1,up=False):
   '''
@@ -394,7 +376,6 @@ def round2val(number=0,rounder=1,up=False):
 
   return rounded 
 
-#--------------------------------------------------------------------------------#
 
 def make_plot(fn,type):
   '''
@@ -470,7 +451,6 @@ def make_plot(fn,type):
 
   os.unlink(tmpf)
 
-#--------------------------------------------------------------------------------#
 
 def proc_data(fn,type):
   '''
@@ -548,7 +528,6 @@ def proc_data(fn,type):
 
   return [out_string,tot,[max_x,max_y]]
 
-#--------------------------------------------------------------------------------#
 
 def fit_n_cross(fn,type='total',order=1,npoints=5):
   '''
@@ -661,7 +640,6 @@ def fit_n_cross(fn,type='total',order=1,npoints=5):
 
       print "%-6s will cross Windows in %s (%s) R = %8.6f | C = %5.1f%%" % (so[i-1], forecast, date, rpar[i-1], frac)
 
-#--------------------------------------------------------------------------------#
 
 def last_perc(fn):
   '''
@@ -686,7 +664,6 @@ def last_perc(fn):
 
   return out_str
 
-#--------------------------------------------------------------------------------#
 
 def next_project(p=None, logfile=os.environ['HOME']+'/.LOGs/boinc/entries.log'):
   '''
@@ -741,6 +718,7 @@ def next_project(p=None, logfile=os.environ['HOME']+'/.LOGs/boinc/entries.log'):
     dago    = decorated_list[-1][0]
 
   return nextone, dago
+
 
 #--------------------------------------------------------------------------------#
 
