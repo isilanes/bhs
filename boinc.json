@@ -1,0 +1,87 @@
+ {
+    "poem" : {
+        "name": "POEM@home",
+        "url" : "boinc.fzk.de/poem/stats/host.gz",
+        "log": true,
+        "s" : [  388,   28,  1247,   35]
+        },
+    "malaria" : {
+        "name": "MalariaControl",
+        "url": "www.malariacontrol.net/stats/host.gz",
+        "log": true,
+        "s" : [  429,   60,   963,   40]
+        },
+    "qmc" : {
+        "name" : "QMC@home",
+        "url" : "qah.uni-muenster.de/stats/host.gz",
+        "log" : false,
+        "s" : [ 1409,   74,  2185,   67]
+        },
+    "spinh" : {
+        "name" : "Spinhenge",
+        "url": "spin.fh-bielefeld.de/stats/host.gz",
+        "log" : false,
+        "s" : [  547,  103,  1039,   97]
+        },
+    "rosetta" : {
+        "name" : "Rosetta@home",
+        "url" : "boinc.bakerlab.org/rosetta/stats/host.gz",
+        "log" : true,
+        "s" : [ 5199,  648,  7546,  502]
+        },
+    "einstein" : {
+        "name": "Einstein@home",
+        "url" : "einstein.phys.uwm.edu/stats/host_id.gz",
+        "log" : true,
+        "s" : [ 9357,  723, 13000,  849]
+        },
+    "seti" : {
+        "name" : "SETI@home",
+        "url" : "setiathome.berkeley.edu/stats/host.gz",
+        "log" : true,
+        "s" : [36000, 2135, 55000, 1201]
+        },
+    "civis" : {
+        "name" : "IBERCIVIS",
+        "url" : "ibercivis.es/stats/host.gz",
+        "log" : false,
+        "s" : []
+        },
+    "milky" : {
+        "name" : "MilkyWay@home",
+        "url" : "milkyway.cs.rpi.edu/milkyway/stats/host.gz",
+        "log" : true,
+        "s" : []
+        },
+    "abc" : {
+        "name" : "ABC@home",
+        "url" : "abcathome.com/stats/host.gz",
+        "log" : true,
+        "s" : []
+        },
+    "prime" : {
+        "name" : "PrimeGrid",
+        "url" : "www.primegrid.com/stats/host.gz",
+        "log" : true,
+        "s" : []
+        },
+    "riesel" : {
+        "name" : "RieselSieve",
+        "url" : "boinc.rieselsieve.com/stats/host_id.gz",
+        "log" : false,
+        "s" : []
+        },
+    "predictor" : {
+        "name" : "Predictor@home",
+        "url" : "predictor.chem.lsa.umich.edu/stats/host_id.gz",
+        "log" : false,
+        "s" : []
+        },
+    "lhc" : {
+        "name" : "LHC@home",
+        "url" : "lhcathome.cern.ch/lhcathome/stats/host.gz",
+        "log" : false,
+        "s" : [  213,  185,   152,  161]
+        }
+ }
+

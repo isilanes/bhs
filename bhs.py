@@ -29,8 +29,9 @@
 # 
 
 import re
-import sys
 import os
+import sys
+import json
 import optparse
 
 sys.path.append(os.environ['HOME']+'/git/pythonlibs')
@@ -48,7 +49,7 @@ class prj(object):
 
     def __init__(self,n=None,u=None,l=False,s=[]):
         self.name = n
-        self.url  = 'http://'+u
+        self.url  = 'http://' + u
         self.log  = l
 
         # stats is a 4-element list, with the values of last logged
@@ -82,6 +83,7 @@ class prj(object):
 #                                                      #
 ########################################################
 
+'''
 p = {                                        
  'poem'      : prj(n='POEM@home',      u='boinc.fzk.de/poem/stats/host.gz',               l=True,  s=[  388,   28,  1247,   35]),
  'malaria'   : prj(n='MalariaControl', u='www.malariacontrol.net/stats/host.gz',          l=True,  s=[  429,   60,   963,   40]),
@@ -98,6 +100,16 @@ p = {
  'predictor' : prj(n='Predictor@home', u='predictor.chem.lsa.umich.edu/stats/host_id.gz', l=False, s=[]),
  'lhc'       : prj(n='LHC@home',       u='lhcathome.cern.ch/lhcathome/stats/host.gz',     l=False, s=[  213,  185,   152,  161]),
  }
+'''
+
+# Read config:
+with open("boinc.json") as f:
+    J = json.load(f)
+
+# Populate dictionary with data:
+p = {}
+for pname, val in J.items():
+    p[pname] = prj(n=val["name"], u=val["url"], l=val["log"], s=val["s"])
 
 ########################################################
 #                                                      #
@@ -273,8 +285,6 @@ def host_stats(file=None,recent=False):
 
   return nstring,cstring
 
-#--------------------------------------------------------------------------------#
-
 def save_log(project,logfile,stringa,stringb):
     if (o.verbose):
         print 'Saving log...'
@@ -298,13 +308,10 @@ def save_log(project,logfile,stringa,stringb):
     fn      = '%s/%s' % (logdir,logfile)
     FM.w2file(fn,stringc,'a')
 
-
 def make_plot_new(fn,type,t='total'):
-  '''
-  Plot results with Xmgrace, using Thomas's WriteXMGR module.
+  '''Plot results with Xmgrace, using Thomas's WriteXMGR module.
     fn   = file name of data file
-    type = whether you want raw values ('total') or their (approx. numeric) derivative vs. time ('speed')
-  '''
+    type = whether you want raw values ('total') or their (approx. numeric) derivative vs. time ('speed')'''
 
   [datastr,tot,world] = proc_data(fn,type)
 
@@ -359,14 +366,11 @@ def make_plot_new(fn,type,t='total'):
   cmnd = '/usr/bin/xmgrace -barebones -geom 975x725 -fixed 600 420 -noask -nxy %s' % (tmpf)
   S.cli(cmnd)
 
-
 def round2val(number=0,rounder=1,up=False):
-  '''
-  Rounds a number to multiples of a rounder, and returns it.
+  '''Rounds a number to multiples of a rounder, and returns it.
     number  = number to round
     rounder = number the rounded number should be multiple of
-    up      = whether to round up (true) or down (false)
-  '''
+    up      = whether to round up (true) or down (false)'''
 
   remainder = number % rounder
   rounded   = (number - remainder) / rounder
@@ -377,13 +381,10 @@ def round2val(number=0,rounder=1,up=False):
 
   return rounded 
 
-
 def make_plot(fn,type):
-  '''
-  Plot results with Xmgrace, either interactively or saving to a PNG file.
+  '''Plot results with Xmgrace, either interactively or saving to a PNG file.
     fn   = file name of data file
-    type = whether you want raw values ('total') or their (approx. numeric) derivative vs. time ('speed')
-  '''
+    type = whether you want raw values ('total') or their (approx. numeric) derivative vs. time ('speed')'''
 
   [out_string,tot,world] = proc_data(fn,type)
 
@@ -452,11 +453,8 @@ def make_plot(fn,type):
 
   os.unlink(tmpf)
 
-
 def proc_data(fn,type):
-  '''
-  Process data and generate output string to plot or analize.
-  '''
+  '''Process data and generate output string to plot or analize.'''
 
   lines = FM.file2array(fn)
 
@@ -529,14 +527,11 @@ def proc_data(fn,type):
 
   return [out_string,tot,[max_x,max_y]]
 
-
 def fit_n_cross(fn,type='total',order=1,npoints=5):
-  '''
-  Use polynomial of N-order to fit curves, and then find crossing.
+  '''Use polynomial of N-order to fit curves, and then find crossing.
     fn    = name of file to get info from
     type  = type of data
-    order = N of N-order polynomial
-  '''
+    order = N of N-order polynomial'''
 
   # Get last "npoints" points only:
   fntail = '%s.tailed' % (fn)
@@ -641,11 +636,8 @@ def fit_n_cross(fn,type='total',order=1,npoints=5):
 
       print "%-6s will cross Windows in %s (%s) R = %8.6f | C = %5.1f%%" % (so[i-1], forecast, date, rpar[i-1], frac)
 
-
 def last_perc(fn):
-  '''
-  Return the last share percents.
-  '''
+  '''Return the last share percents.'''
 
   cmnd = 'tail -1 %s' % (fn)
   line = S.cli(cmnd,1).split('\n')
@@ -664,7 +656,6 @@ def last_perc(fn):
     i       += 1
 
   return out_str
-
 
 def next_project(p=None, logfile=os.environ['HOME']+'/.LOGs/boinc/entries.log'):
   '''Read a log file to see which was the project logged longest ago, and log it,
