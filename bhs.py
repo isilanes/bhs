@@ -102,8 +102,9 @@ p = {
  }
 '''
 
-# Read config:
-with open("boinc.json") as f:
+# Read conf:
+fn_conf = os.path.join(os.environ["HOME"], "git", "bhs", "boinc.json")
+with open(fn_conf) as f:
     J = json.load(f)
 
 # Populate dictionary with data:
