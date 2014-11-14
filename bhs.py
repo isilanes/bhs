@@ -166,7 +166,7 @@ else:
             fmt = '{0}.{1}.dat'
             if o.recent:
                 fmt = '{0}_active.{1}.dat'
-            fn = fmt.format(B.plistp[o.project], t)
+            fn = fmt.format(B.plist[o.project].name, t)
             fn = os.path.join(os.environ['HOME'], ".LOGs", "boinc", fn)
-            print fn
-            #core.make_plot(fn, type, o, t0, title, t, p, tmpf)
+            #B.make_plot(fn, type, o, t0, title, t, p, tmpf)
+            B.make_plot(fn)
