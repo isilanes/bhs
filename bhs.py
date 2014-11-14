@@ -163,8 +163,10 @@ else:
 
     for type in types:
         for t in ['nhosts','credit']:
+            fmt = '{0}.{1}.dat'
             if o.recent:
-                fn = '%s/.LOGs/boinc/%s_active.%s.dat' % (os.environ['HOME'], p[o.project].name, t)
-            else:
-                fn = '%s/.LOGs/boinc/%s.%s.dat' % (os.environ['HOME'], p[o.project].name, t)
-            core.make_plot(fn, type, o, t0, title, t, p, tmpf)
+                fmt = '{0}_active.{1}.dat'
+            fn = fmt.format(B.plistp[o.project], t)
+            fn = os.path.join(os.environ['HOME'], ".LOGs", "boinc", fn)
+            print fn
+            #core.make_plot(fn, type, o, t0, title, t, p, tmpf)
