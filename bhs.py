@@ -105,49 +105,45 @@ B.populate(J)
 #--------------------------------------------------------------------------------#
 
 # Help:
-if B.opts.project == 'help':
+if B.pname == 'help':
     shelp = 'Currently available projects:\n'
-    for pr in sorted(B.plist):
-        shelp += '    {0:10s} {1}\n'.format(pr, B.plist[pr].name)
-
+    for pr in sorted(B.pdict):
+        shelp += '    {0:10s} {1}\n'.format(pr, B.pdict[pr].name)
     sys.exit(shelp)
 
 # Choose project if automatic:
-if B.opts.next:
+if o.next:
     B.next_project()
 
 # Actualy run:
 if o.dryrun:
-    print('Would select: {0}'.format(B.opts.project))
+    print('Would select: {0.pname}'.format(B))
     if o.next:
         print("Project last logged: {0:.1f} days ago".format(B.next_ago))
-
 elif o.retrieve:
     if o.verbose:
-        print('Will retrieve: {0.project}'.format(o))
+        print('Will retrieve: {0.pname}'.format(B))
 
     # Retrieve host.gz:
     B.get_hostgz()
   
     # Process host.gz and save (full version, all machines):
-    (nstring,cstring) = core.host_stats('host.gz')
-    core.save_log(p[o.project].name,'entries.log',nstring,cstring)
+    (nstring, cstring) = B.distile_stats('host.gz')
+    B.save_log('entries.log', nstring, cstring)
   
     # Process host.gz and save (only recently active machines):
     if o.recent:
-        (nstring,cstring) = core.host_stats('host.gz',True)
-        pname = '%s_active' % (p[o.project].name)
-        core.save_log(pname,'entries_active.log',nstring,cstring)
+        (nstring,cstring) = core.host_stats('host.gz', True)
+        B.save_log('entries_active.log', nstring, cstring)
   
     # Clean up, and say bye:
     if (o.verbose):
-      print 'Deleting hosts.gz...'
+        print('Deleting hosts.gz...')
     
     os.unlink('host.gz')
     
-    if (o.verbose):
+    if o.verbose:
         print('Finished.')
-
 else:
     # Plot or save PNG:
     if o.verbose:
@@ -157,6 +153,6 @@ else:
         fmt = '{0}.{1}.dat'
         if o.recent:
             fmt = '{0}_active.{1}.dat'
-        fn = fmt.format(B.plist[o.project].name, t)
+        fn = fmt.format(B.pdict[o.project].name, t)
         fn = os.path.join(os.environ['HOME'], ".LOGs", "boinc", fn)
         B.make_plot(fn)
