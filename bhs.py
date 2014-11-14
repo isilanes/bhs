@@ -36,20 +36,7 @@ import argparse
 
 from libbhs import core
 
-'''
-sys.path.append(os.environ['HOME']+'/git/pythonlibs')
-sys.path.append('/usr/lib/python2.7/site-packages')
-
-import DataManipulation as DM
-import FileManipulation as FM
-import System as S
-#import WriteXMGR as WX
-import Time as T
-'''
-
 #--------------------------------------------------------------------------------#
-
-# ----- Arguments ----- #
 
 # Read arguments:
 parser = argparse.ArgumentParser()
@@ -74,11 +61,6 @@ parser.add_argument("-v", "--verbose",
                   help="Be verbose. Default: don't be.",
 		  action="count",
 		  default=0)
-
-parser.add_argument("-a", "--analize",
-                  help="Instead of plotting, guess which OS will overtake Windows, and when.",
-		  action="store_true",
-		  default=False)
 
 parser.add_argument("-T", "--total",
                   help="Plot total figures, instead of percents. Default: percents.",
@@ -109,52 +91,43 @@ o = parser.parse_args()
 if o.dryrun:
     o.verbose += 1
 
-# ----- Configuration ----- #
+#--------------------------------------------------------------------------------#
 
 # Read conf:
 fn_conf = os.path.join(os.environ["HOME"], "git", "bhs", "boinc.json")
 with open(fn_conf) as f:
     J = json.load(f)
 
-# Populate dictionary with data:
-p = {}
-for pname, val in J.items():
-    p[pname] = core.Project(n=val["name"], u=val["url"], l=val["log"], s=val["s"])
+# Populate BHS object with opt and conf data:
+B = core.BHS(o)
+B.populate(J)
 
-# --- Start with the run thing --- #
-
-title = { 
-    'nhosts':{ 'total':'Total hosts',
-                     'speed':'Daily increase in number of hosts' },
-
-    'credit':{ 'total':'Accumulated credit',
-                     'speed':'Daily Credit Generation Rate' }
-	}
+#--------------------------------------------------------------------------------#
 
 # Help:
-if o.project == 'help':
+if B.opts.project == 'help':
     shelp = 'Currently available projects:\n'
-    for pr in sorted(p):
-        shelp += '    {0:10s} {1}\n'.format(pr,p[pr].name)
+    for pr in sorted(B.plist):
+        shelp += '    {0:10s} {1}\n'.format(pr, B.plist[pr].name)
 
     sys.exit(shelp)
 
 # Choose project if automatic:
-if o.next:
-    o.project, days_ago = core.next_project(p, o.verbose)
+if B.opts.next:
+    B.next_project()
 
 # Actualy run:
 if o.dryrun:
-    print('Would select: {0.project}'.format(o))
+    print('Would select: {0}'.format(B.opts.project))
     if o.next:
-        print("Project last logged: {0:.1f} days ago".format(days_ago))
+        print("Project last logged: {0:.1f} days ago".format(B.next_ago))
 
 elif o.retrieve:
     if o.verbose:
         print('Will retrieve: {0.project}'.format(o))
 
     # Retrieve host.gz:
-    p[o.project].get_hostgz()
+    B.get_hostgz()
   
     # Process host.gz and save (full version, all machines):
     (nstring,cstring) = core.host_stats('host.gz')
@@ -174,41 +147,16 @@ elif o.retrieve:
     
     if (o.verbose):
         print('Finished.')
-elif o.analize:
-    if o.verbose:
-        print('Will analize: {0.project}'.format(o))
 
-    # Analize:
-    t0 = 1201956633
-    type = 'total'
-  
-    for t in ['nhosts']:
-        print 'According to '+t+':'
-        fn =  os.path.join(os.environ['HOME'], '.LOGs', 'boinc', '{0}.{1}.dat'.format(p[o.project].name,t))
-        print(core.last_perc(fn))
-
-        for order in [1]: # order of polynomial fit
-            print '\nWith a polynomial of order %i:' % (order)
-            for npoints in [2,3,4,5,10,20]: # number of last points to use for fit
-                npoints = npoints + order
-                core.fit_n_cross(fn,type,order,npoints)
 else:
-  # Plot or save PNG
-  if o.verbose:
-      print 'Will plot: %s' % (o.project)
+    # Plot or save PNG:
+    if o.verbose:
+        print('Will plot: {0.project}'.format(o))
 
-  t0 = 1201956633
-  tmpf = 'boinc.tmp'
-  xmgr = 'xmgrace -barebones -geom 1050x900 -fixed 650 500 '
-
-  types = ['total']
-  if o.total:
-      types.append('speed')
-
-  for type in types:
-      for t in ['nhosts','credit']:
-          if o.recent:
-              fn = '%s/.LOGs/boinc/%s_active.%s.dat' % (os.environ['HOME'], p[o.project].name, t)
-          else:
-              fn = '%s/.LOGs/boinc/%s.%s.dat' % (os.environ['HOME'], p[o.project].name, t)
-          core.make_plot(fn, type, o, t0, title, t, p, tmpf)
+    for t in ['nhosts','credit']:
+        fmt = '{0}.{1}.dat'
+        if o.recent:
+            fmt = '{0}_active.{1}.dat'
+        fn = fmt.format(B.plist[o.project].name, t)
+        fn = os.path.join(os.environ['HOME'], ".LOGs", "boinc", fn)
+        B.make_plot(fn)
