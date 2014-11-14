@@ -2,13 +2,14 @@ import re
 import os
 import sys
 import datetime
+import subprocess as sp
 
 sys.path.append(os.environ['HOME']+'/git/pythonlibs')
 sys.path.append('/usr/lib/python2.7/site-packages')
 
 import DataManipulation as DM
 import FileManipulation as FM
-import System as S
+#import System as S
 #import WriteXMGR as WX
 import Time as T
 
@@ -26,22 +27,83 @@ class Project(object):
         # stats has no real value at all.
         self.stats = s
 
-    def get_hostgz(self):
+    def get_hostgz(self, opts):
         '''Retrieve the host.gz file from the URL.'''
 
-        if (o.verbose):
-            print 'Retrieving stats file...'
+        if (opts.verbose):
+            print('Retrieving stats file...')
 
         # Limit bw usage, in KiB/s:
         bwlimit = 100
 
-        if o.verbose:
-            cmnd = 'wget --limit-rate=%ik    %s -O host.gz' % (bwlimit,self.url)
+        cmd = 'wget --limit-rate={0:d}k {1} -O host.gz'.format(bwlimit, self.url)
+        if not opts.verbose:
+            cmd += ' -q'
 
-        else:
-            cmnd = 'wget --limit-rate=%ik -q %s -O host.gz' % (bwlimit,self.url)
+        s = sp.Popen(cmd, shell=True)
+        s.communicate()
 
-        S.cli(cmnd)
+
+class BHS(object):
+    '''This holds all projects, as list, plus general info.'''
+
+    def __init__(self, opts):
+        self.opts = opts
+        self.plist = {}
+        self.title = { 
+                'nhosts' : { 
+                    'total':'Total hosts',
+                    'speed':'Daily increase in number of hosts'
+                    },
+                'credit' : {
+                    'total':'Accumulated credit',
+                    'speed':'Daily Credit Generation Rate'
+                    }
+                }
+
+    def populate(self, dict):
+        for pname, val in dict.items():
+            self.plist[pname] = Project(n=val["name"], u=val["url"], l=val["log"], s=val["s"])
+
+    def next_project(self):
+        '''Read a log file to see which was the project logged longest ago, and log it,
+        according to an internal list of the projects with the flag "log=True".'''
+
+        logfile = os.path.join(os.environ['HOME'], '.LOGs', 'boinc', 'entries.log')
+
+        ago = {} # dict: project name -> seconds ago logged last:
+        now = datetime.datetime.now()
+        with open(logfile) as f:
+            for line in f:
+                if "logged at" in line:
+                    pname, kk, kk, hour, kk, day = line.split()
+                    if not pname in ago:
+                        ago[pname] = 99999999
+                    t = datetime.datetime.strptime(day+' '+hour, '%Y.%m.%d %H:%M:%S')
+                    dt = now - t
+                    dt = dt.days*86400 + dt.seconds
+                    if dt < ago[pname]:
+                        ago[pname] = dt
+
+        pnames = {}
+        for k,v in self.plist.items():
+            pnames[v.name] = v
+
+        max_ago = 0
+        max_name = None
+        for pname, seconds_ago in ago.items():
+            # Ignore inactive projects:
+            if pname in pnames and pnames[pname].log:
+                # Save up the one last logged the longest ago:
+                if seconds_ago > max_ago:
+                    max_name = pname
+                    max_ago = seconds_ago
+
+        self.opts.project = max_name
+        self.next_ago = max_ago/86400.
+
+    def get_hostgz(self):
+        self.opts.project.get_hostgz(self.opts)
 
 
 #--------------------------------------------------------------------------------#
@@ -528,43 +590,6 @@ def last_perc(fn):
     i       += 1
 
   return out_str
-
-def next_project(p=None, verbosity=0, logfile=None):
-    '''Read a log file to see which was the project logged longest ago, and log it,
-    according to an internal list of the projects with the flag "log=True".'''
-
-    if not logfile:
-        logfile = os.path.join(os.environ['HOME'], '.LOGs', 'boinc', 'entries.log')
-
-    ago = {} # dict: project name -> seconds ago logged last:
-    now = datetime.datetime.now()
-    with open(logfile) as f:
-        for line in f:
-            if "logged at" in line:
-                pname, kk, kk, hour, kk, day = line.split()
-                if not pname in ago:
-                    ago[pname] = 99999999
-                t = datetime.datetime.strptime(day+' '+hour, '%Y.%m.%d %H:%M:%S')
-                dt = now - t
-                dt = dt.days*86400 + dt.seconds
-                if dt < ago[pname]:
-                    ago[pname] = dt
-
-    pnames = {}
-    for k,v in p.items():
-        pnames[v.name] = v
-
-    max_ago = 0
-    max_name = None
-    for pname, seconds_ago in ago.items():
-        # Ignore inactive projects:
-        if pname in pnames and pnames[pname].log:
-            # Save up the one last logged the longest ago:
-            if seconds_ago > max_ago:
-                max_name = pname
-                max_ago = seconds_ago
-
-    return max_name, max_ago/86400.
 
 
 #--------------------------------------------------------------------------------#
