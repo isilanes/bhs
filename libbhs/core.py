@@ -119,7 +119,9 @@ class BHS(object):
         with open(fn) as f:
             for line in f:
                 aline = [ int(x) for x in line.split() ]
-                X.append(aline[0])
+                dt = datetime.timedelta(seconds=int(aline[0]))
+                t = self.ref_time + dt
+                X.append(t)
                 for i in range(4):
                     Y[i].append(aline[i+1])
   
@@ -127,7 +129,11 @@ class BHS(object):
         pylab.figure(0, figsize=(13,8), dpi=100)
         for ycol in Y:
             pylab.plot(X, ycol)
-        pylab.title(self.title[what]["total"])
+        wt = self.title[what]["total"]
+        pylab.title(wt)
+        pylab.xlabel("Date")
+        pylab.ylabel(wt)
+        pylab.ticklabel_format(style="sci", axis="y", scilimits=(0,0))
         pylab.show()
 
     def distile_stats(self, file=None, recent=False):
