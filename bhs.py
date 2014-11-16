@@ -149,10 +149,5 @@ else:
     if o.verbose:
         print('Will plot: {0.project}'.format(o))
 
-    for t in ['nhosts','credit']:
-        fmt = '{0}.{1}.dat'
-        if o.recent:
-            fmt = '{0}_active.{1}.dat'
-        fn = fmt.format(B.pdict[o.project].name, t)
-        fn = os.path.join(os.environ['HOME'], ".LOGs", "boinc", fn)
-        B.make_plot(fn)
+    for what in ['nhosts','credit']:
+        B.make_plot(what)

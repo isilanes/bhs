@@ -103,8 +103,14 @@ class BHS(object):
     def get_hostgz(self):
         self.project.get_hostgz(self.opts, self.bwlimit)
 
-    def make_plot(self, fn):
+    def make_plot(self, what):
         '''Plot data of file fn.'''
+
+        fmt = '{0}.{1}.dat'
+        if self.opts.recent:
+            fmt = '{0}_active.{1}.dat'
+        fn = fmt.format(self.project.name, what)
+        fn = os.path.join(os.environ['HOME'], ".LOGs", "boinc", fn)
 
         X = [] # x axis (time)
         Y = [ [], [], [], [] ] # values for Windows, Linux, Darwin (Max) and other
@@ -121,6 +127,7 @@ class BHS(object):
         pylab.figure(0, figsize=(13,8), dpi=100)
         for ycol in Y:
             pylab.plot(X, ycol)
+        pylab.title(self.title[what]["total"])
         pylab.show()
 
     def distile_stats(self, file=None, recent=False):
