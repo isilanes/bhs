@@ -129,13 +129,13 @@ elif o.retrieve:
     B.get_hostgz()
   
     # Process host.gz and save (full version, all machines):
-    (nstring, cstring) = B.distile_stats('host.gz')
-    B.save_log('entries.log', nstring, cstring)
+    (nstring, cstring) = B.distile_stats()
+    B.save_log(nstring, cstring)
   
     # Process host.gz and save (only recently active machines):
     if o.recent:
-        (nstring,cstring) = core.host_stats('host.gz', True)
-        B.save_log('entries_active.log', nstring, cstring)
+        (nstring, cstring) = B.distile_stats(recent=True)
+        B.save_log(nstring, cstring, recent=True)
   
     # Clean up, and say bye:
     if (o.verbose):

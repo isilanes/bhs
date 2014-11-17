@@ -1,6 +1,5 @@
 import re
 import os
-import sys
 import pylab
 import datetime
 import subprocess as sp
@@ -77,7 +76,6 @@ class BHS(object):
             for line in f:
                 if "logged at" in line:
                     pname, kk, kk, hour, kk, day = line.split()
-                    pname = str(pname)
                     pkey = self.name2key[pname]
                     if not pkey in ago:
                         ago[pkey] = 99999999
@@ -87,6 +85,13 @@ class BHS(object):
                     if dt < ago[pkey]:
                         ago[pkey] = dt
 
+        plist = [ [t, pk] for pk,t in ago.items() if self.pdict[pk].log ]
+        plist.sort()
+        for t_ago, pkey in plist:
+            string = '{0:6.1f} {1}'.format(t_ago/86400., pkey)
+            print(string)
+        max_ago, max_name = plist[-1]
+        '''
         max_ago = 0
         max_name = None
         for pkey, seconds_ago in ago.items():
@@ -96,6 +101,7 @@ class BHS(object):
                 if seconds_ago > max_ago:
                     max_name = pkey
                     max_ago = seconds_ago
+        '''
 
         self.pkey = max_name
         self.next_ago = max_ago/86400.
@@ -136,15 +142,12 @@ class BHS(object):
         pylab.ticklabel_format(style="sci", axis="y", scilimits=(0,0))
         pylab.show()
 
-    def distile_stats(self, file=None, recent=False):
+    def distile_stats(self, file='host.gz', recent=False):
         '''The "recent" flag selects host active in the last "recent" days (rpc_time greater
         than (date +%s - 30*86400)). If set to False, all computers are counted.'''
         
         now = (datetime.datetime.now() - self.ref_time).total_seconds()
         now = int(now)
-  
-        if file == None:
-            sys.exit("bhs.host_stats: Need a file name to process!")
   
         if self.opts.verbose:
             print('Processing retrieved stats file...')
@@ -229,33 +232,39 @@ class BHS(object):
   
         return nstring, cstring
 
-    def save_log(self, logfile, stringa, stringb):
+    def save_log(self, stringa, stringb, recent=False):
         if self.opts.verbose:
             print('Saving log...')
       
         if not re.search('\n',stringa): stringa += '\n'
         if not re.search('\n',stringb): stringb += '\n'
-      
+
         logdir = os.path.join(os.environ['HOME'], '.LOGs', 'boinc')
       
         # Number of hosts:
         fn = '{0}.nhosts.dat'.format(self.project.name)
+        if recent:
+            fn = '{0}_active.nhosts.dat'.format(self.project.name)
         fn = os.path.join(logdir, fn)
         with open(fn, 'a') as f:
             f.write(stringa)
       
         # Amount of credit:
         fn = '{0}.credit.dat'.format(self.project.name)
+        if recent:
+            fn = '{0}_active.credit.dat'.format(self.project.name)
         fn = os.path.join(logdir, fn)
         with open(fn, 'a') as f:
             f.write(stringb)
       
         # Log entry:
-        pname = self.project.name.replace('_active','')
+        logfile = "entries.log"
+        if recent:
+            logfile = "entries_active.log"
         now = datetime.datetime.now()
         hourday = datetime.datetime.strftime(now, '%H:%M:%S on %Y.%m.%d')
-        stringc = '{0:16} logged at {1}\n'.format(pname, hourday)
-        fn = os.path.join(logdir,logfile)
+        stringc = '{0:16} logged at {1}\n'.format(self.project.name, hourday)
+        fn = os.path.join(logdir, logfile)
         with open(fn, 'a') as f:
             f.write(stringc)
 
