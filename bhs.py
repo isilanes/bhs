@@ -105,10 +105,10 @@ B.populate(J)
 #--------------------------------------------------------------------------------#
 
 # Help:
-if B.pname == 'help':
+if B.pkey == 'help':
     shelp = 'Currently available projects:\n'
-    for pr in sorted(B.pdict):
-        shelp += '    {0:10s} {1}\n'.format(pr, B.pdict[pr].name)
+    for pkey in sorted(B.pdict):
+        shelp += '    {0:10s} {1}\n'.format(pkey, B.pdict[pkey].name)
     sys.exit(shelp)
 
 # Choose project if automatic:
@@ -117,12 +117,13 @@ if o.next:
 
 # Actualy run:
 if o.dryrun:
-    print('Would select: {0.pname}'.format(B))
+    print('Would select: {0.project.name}'.format(B))
     if o.next:
         print("Project last logged: {0:.1f} days ago".format(B.next_ago))
+
 elif o.retrieve:
     if o.verbose:
-        print('Will retrieve: {0.pname}'.format(B))
+        print('Will retrieve: {0.project.name}'.format(B))
 
     # Retrieve host.gz:
     B.get_hostgz()
@@ -144,6 +145,7 @@ elif o.retrieve:
     
     if o.verbose:
         print('Finished.')
+
 else:
     # Plot or save PNG:
     if o.verbose:

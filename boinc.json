@@ -72,7 +72,7 @@
         "s" : []
         },
     "predictor" : {
-        "name" : "Predictor@home",
+        "name" : "Predictor@Home",
         "url" : "predictor.chem.lsa.umich.edu/stats/host_id.gz",
         "log" : false,
         "s" : []

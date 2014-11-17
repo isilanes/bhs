@@ -40,7 +40,7 @@ class BHS(object):
         self.ref_time = datetime.datetime(1970,1,1) # reference time
         self.opts = opts
         self.pdict = {}
-        self.pname = opts.project # selected project name
+        self.pkey = opts.project # selected project key (e.g. "seti" for SETI@Home)
         self.title = { 
                 'nhosts' : { 
                     'total':'Total hosts',
@@ -52,16 +52,18 @@ class BHS(object):
                     }
                 }
         self.bwlimit = 250 # bandwidth limit for download, in kB/s
+        self.name2key = {} # dict of "project name" (SETI@home) -> "project key" (seti)
 
     def populate(self, dict):
-        for pname, val in dict.items():
-            self.pdict[pname] = Project(n=val["name"], u=val["url"], l=val["log"], s=val["s"])
+        for pkey, val in dict.items():
+            self.pdict[pkey] = Project(n=val["name"], u=val["url"], l=val["log"], s=val["s"])
+            self.name2key[val["name"]] = pkey
 
     @property
     def project(self):
-        '''Return Project object corresponding to self.pname.'''
+        '''Return Project object corresponding to self.pkey.'''
 
-        return self.pdict[self.pname]
+        return self.pdict[self.pkey]
 
     def next_project(self):
         '''Read a log file to see which was the project logged longest ago, and log it,
@@ -75,29 +77,27 @@ class BHS(object):
             for line in f:
                 if "logged at" in line:
                     pname, kk, kk, hour, kk, day = line.split()
-                    if not pname in ago:
-                        ago[pname] = 99999999
+                    pname = str(pname)
+                    pkey = self.name2key[pname]
+                    if not pkey in ago:
+                        ago[pkey] = 99999999
                     t = datetime.datetime.strptime(day+' '+hour, '%Y.%m.%d %H:%M:%S')
                     dt = now - t
                     dt = dt.days*86400 + dt.seconds
-                    if dt < ago[pname]:
-                        ago[pname] = dt
-
-        pnames = {}
-        for k,v in self.pdict.items():
-            pnames[v.name] = v
+                    if dt < ago[pkey]:
+                        ago[pkey] = dt
 
         max_ago = 0
         max_name = None
-        for pname, seconds_ago in ago.items():
+        for pkey, seconds_ago in ago.items():
             # Ignore inactive projects:
-            if pname in pnames and pnames[pname].log:
+            if self.pdict[pkey].log:
                 # Save up the one last logged the longest ago:
                 if seconds_ago > max_ago:
-                    max_name = pname
+                    max_name = pkey
                     max_ago = seconds_ago
 
-        self.pname = max_name
+        self.pkey = max_name
         self.next_ago = max_ago/86400.
 
     def get_hostgz(self):
