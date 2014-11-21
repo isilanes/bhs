@@ -91,17 +91,6 @@ class BHS(object):
             string = '{0:6.1f} {1}'.format(t_ago/86400., pkey)
             print(string)
         max_ago, max_name = plist[-1]
-        '''
-        max_ago = 0
-        max_name = None
-        for pkey, seconds_ago in ago.items():
-            # Ignore inactive projects:
-            if self.pdict[pkey].log:
-                # Save up the one last logged the longest ago:
-                if seconds_ago > max_ago:
-                    max_name = pkey
-                    max_ago = seconds_ago
-        '''
 
         self.pkey = max_name
         self.next_ago = max_ago/86400.
@@ -120,6 +109,7 @@ class BHS(object):
 
         X = [] # x axis (time)
         Y = [ [], [], [], [] ] # values for Windows, Linux, Darwin (Max) and other
+        T = [ 'Windows', 'Linux', 'Darwin', 'Other' ]
 
         # Collect info:
         with open(fn) as f:
@@ -133,13 +123,14 @@ class BHS(object):
   
         # Plot:
         pylab.figure(0, figsize=(13,8), dpi=100)
-        for ycol in Y:
-            pylab.plot(X, ycol)
+        for ycol, lab in zip(Y,T):
+            pylab.plot(X, ycol, "o--", label=lab)
         wt = self.title[what]["total"]
         pylab.title(wt)
         pylab.xlabel("Date")
         pylab.ylabel(wt)
         pylab.ticklabel_format(style="sci", axis="y", scilimits=(0,0))
+        pylab.legend(bbox_to_anchor=(0.2, 0.95))
         pylab.show()
 
     def distile_stats(self, file='host.gz', recent=False):
