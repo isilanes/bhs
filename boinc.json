@@ -56,7 +56,7 @@
     "abc" : {
         "name" : "ABC@home",
         "url" : "abcathome.com/stats/host.gz",
-        "log" : true,
+        "log" : false,
         "s" : []
         },
     "prime" : {
@@ -77,11 +77,17 @@
         "log" : false,
         "s" : []
         },
+    "bitcoin" : {
+        "name" : "Bitcoin_Utopia",
+        "url" : "www.bitcoinutopia.net/bitcoinutopia/stats/host.gz",
+        "log" : true,
+        "s" : []
+        },
     "lhc" : {
         "name" : "LHC@home",
         "url" : "lhcathome.cern.ch/lhcathome/stats/host.gz",
         "log" : false,
-        "s" : [  213,  185,   152,  161]
+        "s" : [  213,  185,   152,  161 ]
         }
  }
 
