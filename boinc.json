@@ -8,7 +8,7 @@
     "malaria" : {
         "name": "MalariaControl",
         "url": "www.malariacontrol.net/stats/host.gz",
-        "log": true,
+        "log": false,
         "s" : [  429,   60,   963,   40]
         },
     "qmc" : {
@@ -90,4 +90,3 @@
         "s" : [  213,  185,   152,  161 ]
         }
  }
-
