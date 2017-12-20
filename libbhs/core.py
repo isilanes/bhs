@@ -72,7 +72,7 @@ def read_conf(fn=None, logger=None):
 
     if logger:
         logger.debug("Read config for following active keys:")
-        logger.debug([k for k in res if res[k]["log"]])
+        logger.debug([k for k in res if res[k]["active"]])
 
     return res
 
@@ -135,7 +135,7 @@ class BHS(object):
         self.__oldest_project = None
         
         # Populate projects:
-        for k, v in [(k, v) for k, v in conf.items() if v["log"]]:
+        for k, v in [(k, v) for k, v in conf.items() if v["active"]]:
             self.pdict[k] = Project(n=v["name"], k=k, u=v["url"], s=v["s"])
             self.name2key[v["name"]] = k
 
