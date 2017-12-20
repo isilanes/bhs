@@ -1,14 +1,71 @@
+# Standard libs:
 import re
 import os
+import sys
 import pylab
 import datetime
+import argparse
 import subprocess as sp
 
-#--------------------------------------------------------------------------------#
+# Functions:
+def parse_args(args=sys.argv[1:]):
+    """Parse arguments."""
 
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument("-P", "--png",
+                      help="Make plots non-interactively, and save them as PNG.",
+                      action="store_true",
+                      default=False)
+
+    parser.add_argument("-p", "--project",
+                      help="Retrieve info from project PROJECT. For a list, use --project=help",
+                      default='malaria')
+
+    parser.add_argument("-r", "--retrieve",
+                      help="Retrieve data, instead of ploting logged values. Default: don't retrieve.",
+                      action="store_true",
+                      default=False)
+
+    parser.add_argument("-v", "--verbose",
+                      help="Be verbose. Default: don't be.",
+                      action="count",
+                      default=0)
+
+    parser.add_argument("-T", "--total",
+                      help="Plot total figures, instead of percents. Default: percents.",
+                      action="store_true",
+                      default=False)
+
+    parser.add_argument("-n", "--next",
+                      help="If true, check what was last project logged, and log the next one in internal list. Implies -r. Default: False.",
+                      action="store_true",
+                      default=False)
+
+    parser.add_argument("-s", "--smooth",
+                      help="For rate plots (in contrast to instantaneous data ones), use last [i-SMOOTH,i] data points for averaging at ith point. Default: 1.",
+                      default=1)
+
+    parser.add_argument("-R", "--recent",
+                      help="Count and log also active hosts (those reporting results in the last 30 days). Default: count and log only all hosts.",
+                      action="store_true",
+                      default=False)
+
+    parser.add_argument("-y", "--dryrun",
+                      help="Perform a dry run: just tell what would be done, but don't do it. Default: real run (plotting, if nothing else is specified).",
+                      action="store_true",
+                      default=False)
+
+
+    return parser.parse_args(args)
+
+
+# Classes:
 class Project(object):
+    """Hold all info and methods about one project."""
 
-    def __init__(self,n=None,u=None,l=False,s=[]):
+    # Constructor:
+    def __init__(self,n=None,u=None,l=False,s=[])=:
         self.name = n
         self.url  = 'http://' + u
         self.log  = l
@@ -18,8 +75,10 @@ class Project(object):
         # stats has no real value at all.
         self.stats = s
 
+
+    # Public methods:
     def get_hostgz(self, opts, bwlimit=100):
-        '''Retrieve the host.gz file from the URL.'''
+        """Retrieve the host.gz file from the URL."""
 
         if (opts.verbose):
             print('Retrieving stats file...')
@@ -31,10 +90,10 @@ class Project(object):
         s = sp.Popen(cmd, shell=True)
         s.communicate()
 
-
 class BHS(object):
-    '''This holds all projects, as list, plus general info.'''
+    """This holds all projects, as list, plus general info."""
 
+    # Constructor:
     def __init__(self, opts):
         self.ref_time = datetime.datetime(1970,1,1) # reference time
         self.opts = opts
@@ -53,21 +112,17 @@ class BHS(object):
         self.bwlimit = 250 # bandwidth limit for download, in kB/s
         self.name2key = {} # dict of "project name" (SETI@home) -> "project key" (seti)
 
+
+    # Public methods:
     def populate(self, dict):
         for pkey, val in dict.items():
             self.pdict[pkey] = Project(n=val["name"], u=val["url"], l=val["log"], s=val["s"])
             self.name2key[val["name"]] = pkey
 
-    @property
-    def project(self):
-        '''Return Project object corresponding to self.pkey.'''
-
-        return self.pdict[self.pkey]
-
     def next_project(self):
-        '''Read a log file to see which was the project logged longest ago, and log it,
-        according to an internal list of the projects with the flag "log=True".'''
-
+        """Read a log file to see which was the project logged longest ago, and log it,
+        according to an internal list of the projects with the flag "log=True".
+        """
         logfile = os.path.join(os.environ['HOME'], '.LOGs', 'boinc', 'entries.log')
 
         ago = {} # dict: project name -> seconds ago logged last:
@@ -99,7 +154,7 @@ class BHS(object):
         self.project.get_hostgz(self.opts, self.bwlimit)
 
     def make_plot(self, what):
-        '''Plot data of file fn.'''
+        """Plot data of file fn."""
 
         fmt = '{0}.{1}.dat'
         if self.opts.recent:
@@ -109,7 +164,6 @@ class BHS(object):
 
         X = [] # x axis (time)
         Y = [ [], [], [], [] ] # values for Windows, Linux, Darwin (Max) and other
-        T = [ 'Windows', 'Linux', 'Darwin', 'Other' ]
 
         # Collect info:
         with open(fn) as f:
@@ -123,20 +177,19 @@ class BHS(object):
   
         # Plot:
         pylab.figure(0, figsize=(13,8), dpi=100)
-        for ycol, lab in zip(Y,T):
-            pylab.plot(X, ycol, "o--", label=lab)
+        for ycol in Y:
+            pylab.plot(X, ycol)
         wt = self.title[what]["total"]
         pylab.title(wt)
         pylab.xlabel("Date")
         pylab.ylabel(wt)
         pylab.ticklabel_format(style="sci", axis="y", scilimits=(0,0))
-        pylab.legend(bbox_to_anchor=(0.2, 0.95))
         pylab.show()
 
     def distile_stats(self, file='host.gz', recent=False):
-        '''The "recent" flag selects host active in the last "recent" days (rpc_time greater
-        than (date +%s - 30*86400)). If set to False, all computers are counted.'''
-        
+        """The "recent" flag selects host active in the last "recent" days (rpc_time greater
+        than (date +%s - 30*86400)). If set to False, all computers are counted.
+        """
         now = (datetime.datetime.now() - self.ref_time).total_seconds()
         now = int(now)
   
@@ -224,6 +277,8 @@ class BHS(object):
         return nstring, cstring
 
     def save_log(self, stringa, stringb, recent=False):
+        """Save log."""
+
         if self.opts.verbose:
             print('Saving log...')
       
@@ -260,4 +315,10 @@ class BHS(object):
             f.write(stringc)
 
 
-#--------------------------------------------------------------------------------#
+    # Public properties:
+    @property
+    def project(self):
+        """Return Project object corresponding to self.pkey."""
+
+        return self.pdict[self.pkey]
+
