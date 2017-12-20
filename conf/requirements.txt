@@ -1,0 +1,8 @@
+cycler==0.10.0
+-e git+git@github.com:isilanes/logworks.git@ddab9c68cc44cc734b90f0a824e3ad90f3d4fbef#egg=logworks
+matplotlib==2.1.1
+numpy==1.13.3
+pyparsing==2.2.0
+python-dateutil==2.6.1
+pytz==2017.3
+six==1.11.0

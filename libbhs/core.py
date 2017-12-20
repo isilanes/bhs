@@ -2,10 +2,11 @@
 import re
 import os
 import sys
-import pylab
+import json
 import datetime
 import argparse
 import subprocess as sp
+import matplotlib.pyplot as plt
 
 # Functions:
 def parse_args(args=sys.argv[1:]):
@@ -19,8 +20,8 @@ def parse_args(args=sys.argv[1:]):
                       default=False)
 
     parser.add_argument("-p", "--project",
-                      help="Retrieve info from project PROJECT. For a list, use --project=help",
-                      default='malaria')
+            help="Retrieve info from project PROJECT. Default: None",
+            default=None)
 
     parser.add_argument("-r", "--retrieve",
                       help="Retrieve data, instead of ploting logged values. Default: don't retrieve.",
@@ -34,11 +35,6 @@ def parse_args(args=sys.argv[1:]):
 
     parser.add_argument("-T", "--total",
                       help="Plot total figures, instead of percents. Default: percents.",
-                      action="store_true",
-                      default=False)
-
-    parser.add_argument("-n", "--next",
-                      help="If true, check what was last project logged, and log the next one in internal list. Implies -r. Default: False.",
                       action="store_true",
                       default=False)
 
@@ -59,16 +55,39 @@ def parse_args(args=sys.argv[1:]):
 
     return parser.parse_args(args)
 
+def read_conf(fn=None, logger=None):
+    """Read configuration file 'fn'. If none given, use default.
+    Returns configuration dictionary.
+    """
+    if not fn:
+        fn = os.path.join(os.environ["HOME"], ".bhs.json")
+
+    logger.info("Reading conf file [ {f} ]".format(f=fn))
+
+    try:
+        with open(fn) as f:
+            res = json.load(f)
+    except:
+        res = {}
+
+    if logger:
+        logger.debug("Read config for following active keys:")
+        logger.debug([k for k in res if res[k]["log"]])
+
+    return res
+
 
 # Classes:
 class Project(object):
     """Hold all info and methods about one project."""
+    
+    BWLIMIT = 250 # bandwidth limit for download, in kB/s
 
     # Constructor:
-    def __init__(self,n=None,u=None,l=False,s=[])=:
+    def __init__(self, n=None, k=None, u=None, s=[]):
         self.name = n
         self.url  = 'http://' + u
-        self.log  = l
+        self.key = k
 
         # stats is a 4-element list, with the values of last logged
         # Mcredit, kHosts, kDCGR and DINH (see code for explanations)
@@ -77,13 +96,13 @@ class Project(object):
 
 
     # Public methods:
-    def get_hostgz(self, opts, bwlimit=100):
+    def get_hostgz(self, opts):
         """Retrieve the host.gz file from the URL."""
 
         if (opts.verbose):
             print('Retrieving stats file...')
 
-        cmd = 'wget --limit-rate={0:d}k {1} -O host.gz'.format(bwlimit, self.url)
+        cmd = 'wget --limit-rate={0:d}k {1} -O host.gz'.format(self.BWLIMIT, self.url)
         if not opts.verbose:
             cmd += ' -q'
 
@@ -93,74 +112,44 @@ class Project(object):
 class BHS(object):
     """This holds all projects, as list, plus general info."""
 
+    TITLE = {
+        'nhosts' : {
+            'total':'Total hosts',
+            'speed':'Daily increase in number of hosts',
+        },
+        'credit' : {
+            'total':'Accumulated credit',
+            'speed':'Daily Credit Generation Rate',
+        }
+    }
+    LOGDIR = os.path.join(os.environ['HOME'], ".LOGs", "boinc")
+
     # Constructor:
-    def __init__(self, opts):
-        self.ref_time = datetime.datetime(1970,1,1) # reference time
+    def __init__(self, opts, conf, logger):
         self.opts = opts
+        self.logger = logger
+
         self.pdict = {}
-        self.pkey = opts.project # selected project key (e.g. "seti" for SETI@Home)
-        self.title = { 
-                'nhosts' : { 
-                    'total':'Total hosts',
-                    'speed':'Daily increase in number of hosts'
-                    },
-                'credit' : {
-                    'total':'Accumulated credit',
-                    'speed':'Daily Credit Generation Rate'
-                    }
-                }
-        self.bwlimit = 250 # bandwidth limit for download, in kB/s
         self.name2key = {} # dict of "project name" (SETI@home) -> "project key" (seti)
+        self.ref_time = datetime.datetime(1970, 1, 1) # reference time
+        self.__oldest_project = None
+        
+        # Populate projects:
+        for k, v in [(k, v) for k, v in conf.items() if v["log"]]:
+            self.pdict[k] = Project(n=v["name"], k=k, u=v["url"], s=v["s"])
+            self.name2key[v["name"]] = k
 
 
     # Public methods:
-    def populate(self, dict):
-        for pkey, val in dict.items():
-            self.pdict[pkey] = Project(n=val["name"], u=val["url"], l=val["log"], s=val["s"])
-            self.name2key[val["name"]] = pkey
-
-    def next_project(self):
-        """Read a log file to see which was the project logged longest ago, and log it,
-        according to an internal list of the projects with the flag "log=True".
-        """
-        logfile = os.path.join(os.environ['HOME'], '.LOGs', 'boinc', 'entries.log')
-
-        ago = {} # dict: project name -> seconds ago logged last:
-        now = datetime.datetime.now()
-        with open(logfile) as f:
-            for line in f:
-                if "logged at" in line:
-                    pname, kk, kk, hour, kk, day = line.split()
-                    pkey = self.name2key[pname]
-                    if not pkey in ago:
-                        ago[pkey] = 99999999
-                    t = datetime.datetime.strptime(day+' '+hour, '%Y.%m.%d %H:%M:%S')
-                    dt = now - t
-                    dt = dt.days*86400 + dt.seconds
-                    if dt < ago[pkey]:
-                        ago[pkey] = dt
-
-        plist = [ [t, pk] for pk,t in ago.items() if self.pdict[pk].log ]
-        plist.sort()
-        for t_ago, pkey in plist:
-            string = '{0:6.1f} {1}'.format(t_ago/86400., pkey)
-            print(string)
-        max_ago, max_name = plist[-1]
-
-        self.pkey = max_name
-        self.next_ago = max_ago/86400.
-
-    def get_hostgz(self):
-        self.project.get_hostgz(self.opts, self.bwlimit)
-
     def make_plot(self, what):
         """Plot data of file fn."""
 
         fmt = '{0}.{1}.dat'
         if self.opts.recent:
             fmt = '{0}_active.{1}.dat'
+
         fn = fmt.format(self.project.name, what)
-        fn = os.path.join(os.environ['HOME'], ".LOGs", "boinc", fn)
+        fn = os.path.join(self.LOGDIR, fn)
 
         X = [] # x axis (time)
         Y = [ [], [], [], [] ] # values for Windows, Linux, Darwin (Max) and other
@@ -176,15 +165,15 @@ class BHS(object):
                     Y[i].append(aline[i+1])
   
         # Plot:
-        pylab.figure(0, figsize=(13,8), dpi=100)
+        plt.figure(0, figsize=(13,8), dpi=100)
         for ycol in Y:
-            pylab.plot(X, ycol)
-        wt = self.title[what]["total"]
-        pylab.title(wt)
-        pylab.xlabel("Date")
-        pylab.ylabel(wt)
-        pylab.ticklabel_format(style="sci", axis="y", scilimits=(0,0))
-        pylab.show()
+            plt.plot(X, ycol)
+        wt = self.TITLE[what]["total"]
+        plt.title(wt)
+        plt.xlabel("Date")
+        plt.ylabel(wt)
+        plt.ticklabel_format(style="sci", axis="y", scilimits=(0,0))
+        plt.show()
 
     def distile_stats(self, file='host.gz', recent=False):
         """The "recent" flag selects host active in the last "recent" days (rpc_time greater
@@ -193,8 +182,7 @@ class BHS(object):
         now = (datetime.datetime.now() - self.ref_time).total_seconds()
         now = int(now)
   
-        if self.opts.verbose:
-            print('Processing retrieved stats file...')
+        self.logger.debug('Processing retrieved stats file...')
   
         credit = 0
         os_list = ['win', 'lin', 'dar', 'oth']
@@ -279,27 +267,29 @@ class BHS(object):
     def save_log(self, stringa, stringb, recent=False):
         """Save log."""
 
-        if self.opts.verbose:
-            print('Saving log...')
+        self.logger.info('Saving log...')
       
-        if not re.search('\n',stringa): stringa += '\n'
-        if not re.search('\n',stringb): stringb += '\n'
+        if not re.search('\n',stringa):
+            stringa += '\n'
 
-        logdir = os.path.join(os.environ['HOME'], '.LOGs', 'boinc')
-      
+        if not re.search('\n',stringb):
+            stringb += '\n'
+
         # Number of hosts:
-        fn = '{0}.nhosts.dat'.format(self.project.name)
+        fn = '{s.project.name}.nhosts.dat'.format(s=self)
         if recent:
-            fn = '{0}_active.nhosts.dat'.format(self.project.name)
-        fn = os.path.join(logdir, fn)
+            fn = '{s.project.name}_active.nhosts.dat'.format(s=self)
+
+        fn = os.path.join(self.LOGDIR, fn)
         with open(fn, 'a') as f:
             f.write(stringa)
       
         # Amount of credit:
-        fn = '{0}.credit.dat'.format(self.project.name)
+        fn = '{s.project.name}.credit.dat'.format(s=self)
         if recent:
-            fn = '{0}_active.credit.dat'.format(self.project.name)
-        fn = os.path.join(logdir, fn)
+            fn = '{s.project.name}_active.credit.dat'.format(s=self)
+
+        fn = os.path.join(self.LOGDIR, fn)
         with open(fn, 'a') as f:
             f.write(stringb)
       
@@ -307,18 +297,57 @@ class BHS(object):
         logfile = "entries.log"
         if recent:
             logfile = "entries_active.log"
+
         now = datetime.datetime.now()
         hourday = datetime.datetime.strftime(now, '%H:%M:%S on %Y.%m.%d')
-        stringc = '{0:16} logged at {1}\n'.format(self.project.name, hourday)
-        fn = os.path.join(logdir, logfile)
+        stringc = '{s.project.name:16} logged at {h}\n'.format(s=self, h=hourday)
+
+        fn = os.path.join(self.LOGDIR, logfile)
         with open(fn, 'a') as f:
             f.write(stringc)
 
 
     # Public properties:
     @property
+    def pkey(self):
+        """Project key name (e.g. "seti")."""
+
+        if self.opts.project:
+            return self.opts.project
+        else:
+            return self.next_project
+
+    @property
     def project(self):
         """Return Project object corresponding to self.pkey."""
 
         return self.pdict[self.pkey]
+
+    @property
+    def next_project(self):
+        """Read a log file to see which was the project logged longest ago, and log it,
+        according to an internal list of the projects with the flag "log=True".
+        """
+        if not self.__oldest_project:
+            logfile = os.path.join(self.LOGDIR, 'entries.log')
+
+            latest = {} # dict: project name -> latest time it was logged
+            with open(logfile) as f:
+                for line in f:
+                    if "logged at" in line:
+                        pname, _, _, hour, _, day = line.split()
+                        t = datetime.datetime.strptime(day+' '+hour, '%Y.%m.%d %H:%M:%S')
+
+                        if pname in self.name2key:
+                            pkey = self.name2key[pname]
+                            latest[pkey] = max(latest.get(pkey, t), t)
+
+            plist = sorted([ [t, pk] for pk, t in latest.items() if pk in self.pdict ])
+            for t, pkey in plist:
+                string = '{t:%Y-%m-%d %H:%M} {k}'.format(t=t, k=pkey)
+                self.logger.debug(string)
+
+            self.__oldest_project = plist[0][1]
+
+        return self.__oldest_project
 
