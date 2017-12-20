@@ -86,7 +86,7 @@ class Project(object):
     # Constructor:
     def __init__(self, n=None, k=None, u=None, s=[]):
         self.name = n
-        self.url  = 'http://' + u
+        self.url = u
         self.key = k
 
         # stats is a 4-element list, with the values of last logged
@@ -175,7 +175,7 @@ class BHS(object):
         plt.ticklabel_format(style="sci", axis="y", scilimits=(0,0))
         plt.show()
 
-    def distile_stats(self, file='host.gz', recent=False):
+    def distile_stats(self, recent=False):
         """The "recent" flag selects host active in the last "recent" days (rpc_time greater
         than (date +%s - 30*86400)). If set to False, all computers are counted.
         """
