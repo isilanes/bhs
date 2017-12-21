@@ -182,7 +182,10 @@ class BHS(object):
         now = (datetime.datetime.now() - self.ref_time).total_seconds()
         now = int(now)
   
-        self.logger.debug('Processing retrieved stats file...')
+        if recent:
+            self.logger.debug('Processing retrieved stats file...')
+        else:
+            self.logger.debug('Processing retrieved stats file for recent data...')
   
         credit = 0
         os_list = ['win', 'lin', 'dar', 'oth']
