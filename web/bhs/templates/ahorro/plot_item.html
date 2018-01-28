@@ -1,0 +1,12 @@
+{% load staticfiles %}
+
+{% include "ahorro/header.html" %}
+
+<div style="width: 75%; padding: 0 0; margin: auto auto;">
+    <canvas id="item_chart"></canvas>
+</div>
+
+<meta id="data-url" data-name="{% url 'ahorro:item_data' item %}">
+
+<script src="{% static "ahorro/js/item_chart.js" %}"></script>
+

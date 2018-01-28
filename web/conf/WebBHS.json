@@ -1,0 +1,6 @@
+{
+  "SECRET_KEY": "jejo-jejo",
+  "DEBUG": true,
+  "DBFILE": "progress.db",
+  "ALLOWED_HOSTS": ["localhost"]
+}

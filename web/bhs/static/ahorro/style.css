@@ -1,0 +1,175 @@
+li a {
+    color: blue;
+}
+
+* {
+    margin: 0; 
+    padding: 10;
+}
+
+div#banner { 
+    margin: 0;
+    position: absolute; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    background-color: #2222ee;
+}
+
+div#banner404 { 
+    margin: 0;
+    position: absolute; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    background-color: #cc2222;
+}
+
+div#banner500 { 
+    margin: 0;
+    position: absolute; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    background-color: #ddb511;
+}
+
+div#banner.normal {
+    background-color: #22aa22;
+}
+
+div#banner-content { 
+    position: center;
+    width: 500px; 
+    margin: 0 auto; 
+    padding: 5px; 
+    color: #ffffff;
+    text-align: center;
+    font-size: 150%;
+}
+
+div#project-head { 
+    position: left;
+    width: 900px;
+    margin: 0 0 0 20; 
+    padding: 2px; 
+    color: #ffffff;
+    font-size: 125%;
+}
+
+div#main-content { 
+    margin: 0; 
+    padding: 0;
+    padding-top: 50px;
+}
+
+table, th, td {
+    border: 0px solid blue;
+}
+
+table {
+    padding: 0px;
+    position: center;
+    border-collapse: collapse;
+}
+
+.widetable {
+    width: 100%;
+}
+
+th {
+    /*height: 50px;*/
+    background-color: #7766ff;
+    color: white;
+    padding: 5px;
+    text-align: left;
+}
+
+td {
+    text-align: left;
+    /*height: 80px;*/
+    vertical-align: top;
+    padding: 5px;
+}
+
+td.comprado {
+    background-color: #00cc55;
+}
+
+td.Expirado {
+    color: #cc0000;
+}
+
+td.Congelado {
+    color: #aaaa00;
+}
+
+td.Terminado {
+    color: #22aa22;
+}
+
+.enddate1 {
+    color: red;
+}
+
+.row1 {
+    background-color: #ddddff;
+}
+
+.row2 {
+    background-color: #d0d0ff;
+}
+
+.finished {
+    background-color: #11ee22;
+}
+
+.period_row_ko {
+    color: red;
+}
+
+.period_row_buffer {
+    color: #aaaa00;
+}
+
+.comprado {
+    color: #00aa11;
+    text-decoration: none;
+}
+
+.no-comprado {
+    color: #aa2211;
+    text-decoration: none;
+}
+
+.upgrade-level-badge {
+    position: relative;
+    background: rgba(0,0,0,1.0);
+    height: 0.5rem;
+    width: 0.5rem;
+    top: 1.5rem;
+    left: 0.9rem;
+    text-align: center;
+    line-height: 0rem;
+    font-size: 1.0rem;
+    padding: 3px;
+    border-radius: 0%;
+    color: white;
+    border: 0px solid black;
+}
+
+.proupgrade-level-badge {
+    position: relative;
+    background: rgba(50,200,0,1.0);
+    height: 0.5rem;
+    width: 0.5rem;
+    top: 1.5rem;
+    left: 1rem;
+    text-align: center;
+    line-height: 0rem;
+    font-size: 1.0rem;
+    padding: 3px;
+    border-radius: 0%;
+    color: black;
+    border: 0px solid black;
+}

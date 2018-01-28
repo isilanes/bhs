@@ -1,0 +1,17 @@
+# Get local db:
+LOCALDB=$1
+if [[ "x$LOCALDB" == "x" ]]; then
+    echo No local db given!
+    exit
+fi
+
+if [[ ! -f $LOCALDB ]]; then
+    echo Local db $LOCALDB does not exist!
+    exit
+fi
+
+# Get version:
+TAG=$(git branch --color=never | awk '/\*/{print $2}')
+
+# Do run:
+docker run -v $LOCALDB:/srv/WebProgress/progress.db:rw --publish=8081:8000 isilanes/django-progress:$TAG
