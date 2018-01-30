@@ -4,6 +4,7 @@ from django.conf.urls import url
 # Our web libs:
 from bhs import views
 
+app_name = "bhs"
 # URL definitions:
 urlpatterns = [
     # Index:

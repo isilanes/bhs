@@ -12,43 +12,15 @@ from bhs.models import  BOINCProject
 def index(request):
     """Show index."""
 
-    if request.method == "POST":
-        form = AmountForm(request.POST)
-        if form.is_valid():
-            data = form.cleaned_data
-            
-            # Create TimeInstant entry:
-            ti = TimeInstant()
-            ti.timestamp = datetime.strptime(data["timestamp"], "%Y-%m-%d")
-            ti.timestamp = ti.timestamp.replace(hour=12)
-            ti.save()
+    timestamp = datetime.now().strftime("%Y-%m-%d")
+    initial = {
+        "timestamp": timestamp,
+    }
 
-            # Create Amount entries:
-            for field, value in data.items():
-                if field == "timestamp":
-                    continue
+    context = {
+        #"form": AmountForm(initial=initial),
+        #"account_list": [a for a in Account.objects.all()],
+    }
 
-                amount = Amount()
-                amount.value = value
-                amount.account = Account.objects.get(name=field)
-                amount.when = ti
-                amount.save()
-
-        # Back to stats_vs_time:
-        return redirect("bhs:index")
-
-    else:
-        timestamp = datetime.now().strftime("%Y-%m-%d")
-        initial = {
-            "timestamp": timestamp,
-        }
-        for account in Account.objects.all():
-            initial[account.name] = 0.0
-
-        context = {
-            #"form": AmountForm(initial=initial),
-            #"account_list": [a for a in Account.objects.all()],
-        }
-
-        return render(request, 'bhs/index.html', context)
+    return render(request, 'bhs/index.html', context)
 

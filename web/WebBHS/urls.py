@@ -15,7 +15,6 @@ Including another URLconf
 """
 # Django libs:
 from django.contrib import admin
-#from django.conf.urls import url, include
 from django.urls import include, path
 from django.views.generic import TemplateView
 
@@ -27,5 +26,5 @@ urlpatterns = [
     path('', TemplateView.as_view(template_name="main_index.html"), name="main_index"),
 
     # bhs web:
-    path('bhs/', include('bhs.urls')),
+    path('bhs/', include('bhs.urls', namespace="bhs")),
 ]

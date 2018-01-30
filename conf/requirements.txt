@@ -1,8 +1,13 @@
+coverage==4.4.2
 cycler==0.10.0
+Django==2.0.1
 -e git+git@github.com:isilanes/logworks.git@v0.4#egg=logworks
 matplotlib==2.1.1
+mock==2.0.0
 numpy==1.13.3
+pbr==3.1.1
 pyparsing==2.2.0
 python-dateutil==2.6.1
 pytz==2017.3
 six==1.11.0
+whitenoise==3.3.1
