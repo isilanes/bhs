@@ -13,9 +13,11 @@
       <td><a href="{% url 'bhs:index' %}"><img src="{% static "bhs/icons/boinc_icon.png" %}" alt="default" style="width: 64px;" /></a></td>
       {% for proj in project_list %}
       <td>
+          <a href="{% url 'bhs:project' proj.name %}">
           {% with "bhs/icons/"|add:proj.icon as proj_icon %}
               <img src="{% static proj_icon %}" alt="{{proj.name}}" style="width: 64px;" />
           {% endwith %}
+          </a>
       </td>
       {% endfor %}
 

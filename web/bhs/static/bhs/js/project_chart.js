@@ -61,7 +61,7 @@ var chart = new Chart(ctx, {
                     },
                     scaleLabel: {
                         display: true,
-                        labelString: "Euros",
+                        labelString: "Cantidad",
                     }
                 }
             ]

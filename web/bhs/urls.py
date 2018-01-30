@@ -1,5 +1,5 @@
 # Django libs:
-from django.conf.urls import url
+from django.urls import path
 
 # Our web libs:
 from bhs import views
@@ -8,11 +8,11 @@ app_name = "bhs"
 # URL definitions:
 urlpatterns = [
     # Index:
-    url(r'^$', views.index, name='index'),
+    path('', views.index, name='index'),
 
-    # Single plots:
-    #url(r'^plot/(?P<item>.+)/$', views.plot_item, name='plot_item'),
+    # Single project:
+    path('project/<slug:name>/', views.project, name='project'),
 
     # Data URLs:
-    #url(r'^item_data/(?P<item>.+)/$', views.item_data, name='item_data'),
+    path('project_data/<slug:project>/', views.project_data, name='project_data'),
 ]

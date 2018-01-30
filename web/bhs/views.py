@@ -20,3 +20,33 @@ def index(request):
 
     return render(request, 'bhs/index.html', context)
 
+def project(request, name):
+
+    context = {
+        "project": name,
+    }
+
+    return render(request, 'bhs/project.html', context)
+
+
+# Data URLs:
+def data_to_plot(project):
+    """Return dictionary with data to plot."""
+
+    data_dict = [
+        {"x": 0, "y": 0},
+    ]
+
+    return data_dict
+
+def project_data(request, project):
+    """Return JSON data."""
+
+    data = {
+        "data": data_to_plot(project),
+        "color": "#00ff00",
+        "label": project,
+    }
+
+    return JsonResponse(data)
+

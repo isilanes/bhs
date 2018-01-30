@@ -1,0 +1,12 @@
+{% load staticfiles %}
+
+{% include "bhs/header.html" %}
+
+<div style="width: 75%; padding: 0 0; margin: auto auto;">
+    <canvas id="item_chart"></canvas>
+</div>
+
+<meta id="data-url" data-name="{% url 'bhs:project_data' project %}">
+
+<script src="{% static "bhs/js/project_chart.js" %}"></script>
+
