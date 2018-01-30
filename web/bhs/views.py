@@ -13,13 +13,9 @@ def index(request):
     """Show index."""
 
     timestamp = datetime.now().strftime("%Y-%m-%d")
-    initial = {
-        "timestamp": timestamp,
-    }
 
     context = {
-        #"form": AmountForm(initial=initial),
-        #"account_list": [a for a in Account.objects.all()],
+        "project_list": [p for p in BOINCProject.objects.filter(active=True)],
     }
 
     return render(request, 'bhs/index.html', context)
