@@ -6,10 +6,36 @@ Chart.defaults.global.animation.duration = 500;
 $(document).ready(function() {
     var dataUrl = $('#data-url').attr("data-name");
     $.get(dataUrl, function(data) {
+
+        // Windows:
         dataset = {
-            label: data.label,
-            borderColor: data.color,
-            data: data.data,
+            label: "Windows",
+            borderColor: "#ff0000",
+            data: data.data.win,
+        }
+        chart.data.datasets.push(dataset)
+
+        // Linux:
+        dataset = {
+            label: "Linux",
+            borderColor: "#00cc00",
+            data: data.data.lin,
+        }
+        chart.data.datasets.push(dataset)
+
+        // MacOS:
+        dataset = {
+            label: "Darwin",
+            borderColor: "#0000ff",
+            data: data.data.mac,
+        }
+        chart.data.datasets.push(dataset)
+
+        // Other:
+        dataset = {
+            label: "Other",
+            borderColor: "#00ccff",
+            data: data.data.other,
         }
         chart.data.datasets.push(dataset)
 
@@ -37,13 +63,14 @@ var chart = new Chart(ctx, {
                         minRotation: 30
                     },
                     time: {
-                        unit: "month",
+                        unit: "year",
                         displayFormats: {
                             minute: "YYYY-MM-DD hh:mm:ss",
                             hour: "YYYY-MM-DD hh:mm",
                             day: "YYYY-MM-DD",
                             week: "YYYY-MM-DD",
-                            month: "YYYY/MM"
+                            month: "YYYY/MM",
+                            year: "YYYY",
                         }
                     },
                     scaleLabel: {

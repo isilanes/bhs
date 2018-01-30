@@ -2,11 +2,22 @@
 
 {% include "bhs/header.html" %}
 
+<table>
+    <tr>
+        <td>
+            {% with "bhs/icons/"|add:proj.icon as proj_icon %}
+                <img src="{% static proj_icon %}" alt="{{proj.name}}" style="width: 72px;" />
+            {% endwith %}
+        </td>
+        <td style="vertical-align: middle; font-size: 150%">{{proj.full_name}}</td>
+    </tr>
+</table>
+
 <div style="width: 75%; padding: 0 0; margin: auto auto;">
     <canvas id="item_chart"></canvas>
 </div>
 
-<meta id="data-url" data-name="{% url 'bhs:project_data' project %}">
+<meta id="data-url" data-name="{% url 'bhs:project_data' proj.name %}">
 
 <script src="{% static "bhs/js/project_chart.js" %}"></script>
 

@@ -6,13 +6,12 @@ from django.http import JsonResponse
 from django.shortcuts import render, redirect
 
 # Our libs:
+from bhs import core
 from bhs.models import  BOINCProject
 
 # Index views:
 def index(request):
     """Show index."""
-
-    timestamp = datetime.now().strftime("%Y-%m-%d")
 
     context = {
         "project_list": [p for p in BOINCProject.objects.filter(active=True)],
@@ -20,32 +19,35 @@ def index(request):
 
     return render(request, 'bhs/index.html', context)
 
-def project(request, name):
+def project(request, pname):
+
+    proj = BOINCProject.objects.get(name=pname)
 
     context = {
-        "project": name,
+        "proj": proj,
+        "project_list": [p for p in BOINCProject.objects.filter(active=True)],
     }
 
     return render(request, 'bhs/project.html', context)
 
 
 # Data URLs:
-def data_to_plot(project):
-    """Return dictionary with data to plot."""
-
-    data_dict = [
-        {"x": 0, "y": 0},
-    ]
-
-    return data_dict
-
-def project_data(request, project):
+def project_data(request, pname):
     """Return JSON data."""
 
+    proj = BOINCProject.objects.get(name=pname)
+
+    data_win, data_lin, data_mac, data_other = core.make_plot(proj, "nhosts")
+
     data = {
-        "data": data_to_plot(project),
-        "color": "#00ff00",
-        "label": project,
+        "win": data_win,
+        "lin": data_lin,
+        "mac": data_mac,
+        "other": data_other,
+    }
+
+    data = {
+        "data": data,
     }
 
     return JsonResponse(data)

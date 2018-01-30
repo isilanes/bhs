@@ -11,8 +11,8 @@ urlpatterns = [
     path('', views.index, name='index'),
 
     # Single project:
-    path('project/<slug:name>/', views.project, name='project'),
+    path('project/<slug:pname>/', views.project, name='project'),
 
     # Data URLs:
-    path('project_data/<slug:project>/', views.project_data, name='project_data'),
+    path('project_data/<slug:pname>/', views.project_data, name='project_data'),
 ]
