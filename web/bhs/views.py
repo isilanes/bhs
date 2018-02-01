@@ -1,4 +1,5 @@
 # Standard libs:
+import requests
 import subprocess as sp
 
 # Django libs:
@@ -56,16 +57,19 @@ def project_data(request, pname):
 def download(request, pname):
     """Download hosts file for project named pname."""
 
+    # Variables:
     rate = BOINCSettings.objects.get(name="default").bwlimit
     url = BOINCProject.objects.get(name=pname).url
 
-    cmd = ["wget", "--limit-rate={r:d}k".format(r=rate), url, "-O", "host.gz"]
-    proc = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.PIPE)
-    out, err = proc.communicate()
+    # Download:
+    r = requests.get(url, stream=True)
+    with open("hosts.gz", "wb") as fhandle:
+        for chunk in r:
+            fhandle.write(chunk)
 
+    # Return data:
     ret = {
-        "out": out,
-        "err": err,
+        "status": r.status_code
     }
 
     return JsonResponse(ret)
