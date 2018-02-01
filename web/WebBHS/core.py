@@ -17,6 +17,7 @@ class Plot(object):
             "range": None,
         }
 
+
     # Public methods:
     def plot(self, Data=None, Style=None):
         """Plot data, as requested."""
