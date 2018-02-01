@@ -8,9 +8,8 @@ import argparse
 import subprocess as sp
 import matplotlib.pyplot as plt
 
-# Constants:
-LOGDIR = os.path.join(os.environ['HOME'], ".LOGs", "boinc")
-REF_TIME = datetime.datetime(1970, 1, 1) # reference time
+# Our libs:
+from bhs.models import BOINCSettings
 
 # Functions:
 def parse_args(args=sys.argv[1:]):
@@ -82,9 +81,11 @@ def read_conf(fn=None, logger=None):
 
 def make_plot(proj, what):
     """Plot data of file fn."""
+    
+    SETTINGS = BOINCSettings.objects.get(name="default")
 
     fn = "{p.full_name}.{w}.dat".format(p=proj, w=what)
-    fn = os.path.join(LOGDIR, fn)
+    fn = os.path.join(SETTINGS.logdir, fn)
 
     X = [] # x axis (time)
     Y = [ [], [], [], [] ] # values for Windows, Linux, Darwin (Max) and other
@@ -94,7 +95,7 @@ def make_plot(proj, what):
         for line in f:
             aline = [ int(x) for x in line.split() ]
             dt = datetime.timedelta(seconds=int(aline[0]))
-            t = REF_TIME + dt
+            t = SETTINGS.ref_date + dt
             X.append(t)
             for i in range(4):
                 Y[i].append(aline[i+1])

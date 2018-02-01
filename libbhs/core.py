@@ -99,7 +99,7 @@ class Project(object):
     def get_hostgz(self, opts):
         """Retrieve the host.gz file from the URL."""
 
-        if (opts.verbose):
+        if opts.verbose:
             print('Retrieving stats file...')
 
         cmd = 'wget --limit-rate={0:d}k {1} -O host.gz'.format(self.BWLIMIT, self.url)

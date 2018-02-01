@@ -1,3 +1,6 @@
+# Standard libs:
+import os
+
 # Django libs:
 from django.db import models
 from django.utils import timezone
@@ -27,4 +30,23 @@ class BOINCProject(models.Model):
 
     def __str__(self):
         return self.full_name
+
+
+class BOINCSettings(models.Model):
+    """Set of settings."""
+
+    # Attributes:
+    name = models.CharField("Name", default="none", max_length=50)
+    bwlimit = models.IntegerField("Bandwidth limit", default=100)
+    logdir = models.CharField("Log dir", 
+                              default=os.path.join(os.environ['HOME'], ".LOGs", "boinc"), 
+                              max_length=200)
+    ref_date = models.DateField("Reference date", default=timezone.datetime(1970, 1, 1))
+
+    # Special methods:
+    def __unicode__(self):
+        return self.__str__()
+
+    def __str__(self):
+        return self.name
 
