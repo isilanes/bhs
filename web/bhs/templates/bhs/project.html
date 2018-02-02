@@ -13,11 +13,24 @@
     </tr>
 </table>
 
-<div style="width: 75%; padding: 0 0; margin: auto auto;">
-    <canvas id="item_chart"></canvas>
-</div>
+<table style="width: 100%;">
+    <tr>
+        <td style="width: 50%">
+            <div style="width: 90%; padding: 0 0; margin: auto auto;">
+                <canvas id="item_chart_nhosts"></canvas>
+            </div>
+        </td>
+        <td style="width: 50%">
+            <div style="width: 90%; padding: 0 0; margin: auto auto;">
+                <canvas id="item_chart_credit"></canvas>
+            </div>
+        </td>
+    </tr>
+</table>
 
-<meta id="data-url" data-name="{% url 'bhs:project_data' proj.name %}">
+<meta id="data-url-nhosts" data-name="{% url 'bhs:project_data' proj.name 'nhosts' %}">
+<meta id="data-url-credit" data-name="{% url 'bhs:project_data' proj.name 'credit' %}">
 
-<script src="{% static "bhs/js/project_chart.js" %}"></script>
+<script src="{% static "bhs/js/project_chart_nhosts.js" %}"></script>
+<script src="{% static "bhs/js/project_chart_credit.js" %}"></script>
 

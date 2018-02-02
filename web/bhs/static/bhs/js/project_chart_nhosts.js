@@ -1,10 +1,11 @@
-var ctx = document.getElementById('item_chart').getContext('2d');
+var ctx_nhosts = document.getElementById('item_chart_nhosts').getContext('2d');
+
 Chart.defaults.global.elements.line.fill = false;
 Chart.defaults.global.legend.display = true;
 Chart.defaults.global.animation.duration = 500;
 
 $(document).ready(function() {
-    var dataUrl = $('#data-url').attr("data-name");
+    var dataUrl = $('#data-url-nhosts').attr("data-name");
     $.get(dataUrl, function(data) {
 
         // Windows:
@@ -13,7 +14,7 @@ $(document).ready(function() {
             borderColor: "#ff0000",
             data: data.data.win,
         }
-        chart.data.datasets.push(dataset)
+        chart_nhosts.data.datasets.push(dataset)
 
         // Linux:
         dataset = {
@@ -21,7 +22,7 @@ $(document).ready(function() {
             borderColor: "#00cc00",
             data: data.data.lin,
         }
-        chart.data.datasets.push(dataset)
+        chart_nhosts.data.datasets.push(dataset)
 
         // MacOS:
         dataset = {
@@ -29,7 +30,7 @@ $(document).ready(function() {
             borderColor: "#0000ff",
             data: data.data.mac,
         }
-        chart.data.datasets.push(dataset)
+        chart_nhosts.data.datasets.push(dataset)
 
         // Other:
         dataset = {
@@ -37,13 +38,13 @@ $(document).ready(function() {
             borderColor: "#00ccff",
             data: data.data.other,
         }
-        chart.data.datasets.push(dataset)
+        chart_nhosts.data.datasets.push(dataset)
 
-        chart.update()
+        chart_nhosts.update()
     });
 });
 
-var chart = new Chart(ctx, {
+var chart_nhosts = new Chart(ctx_nhosts, {
     // The type of chart we want to create:
     type: 'line',
     
@@ -88,7 +89,7 @@ var chart = new Chart(ctx, {
                     },
                     scaleLabel: {
                         display: true,
-                        labelString: "Cantidad",
+                        labelString: "nhosts",
                     }
                 }
             ]

@@ -7,7 +7,6 @@ from django.http import JsonResponse
 from django.shortcuts import render, redirect
 
 # Our libs:
-from bhs import core
 from bhs.models import  BOINCProject, BOINCSettings
 
 # Constants:
@@ -36,12 +35,12 @@ def project(request, pname):
 
 
 # Data URLs:
-def project_data(request, pname):
-    """Return JSON data."""
+def project_data(request, pname, what):
+    """Return JSON data for project named 'pname', and item 'what' (nhosts or credit)."""
 
     proj = BOINCProject.objects.get(name=pname)
 
-    data_win, data_lin, data_mac, data_other = core.make_plot(proj, "nhosts")
+    data_win, data_lin, data_mac, data_other = proj.get_plot_data(what)
 
     data = {
         "win": data_win,

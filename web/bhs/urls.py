@@ -16,7 +16,7 @@ urlpatterns = [
     path('project/<slug:pname>/', views.project, name='project'),
 
     # Data URLs:
-    path('project_data/<slug:pname>/', views.project_data, name='project_data'),
+    path('project_data/<slug:pname>/<slug:what>', views.project_data, name='project_data'),
 
     # Action URLs:
     path('download/<slug:pname>/', views.download, name='download'),
