@@ -9,9 +9,6 @@ from django.shortcuts import render, redirect
 # Our libs:
 from bhs.models import  BOINCProject, BOINCSettings
 
-# Constants:
-#SETTINGS = BOINCSettings.objects.get(name="default")
-
 # Index views:
 def index(request):
     """Show index."""
@@ -59,10 +56,11 @@ def download(request, pname):
     # Variables:
     rate = BOINCSettings.objects.get(name="default").bwlimit
     url = BOINCProject.objects.get(name=pname).url
+    hosts_fn = BOINCSettings.objects.get(name="default").hostsgz_path
 
     # Download:
     r = requests.get(url, stream=True)
-    with open("hosts.gz", "wb") as fhandle:
+    with open(hosts_fn, "wb") as fhandle:
         for chunk in r:
             fhandle.write(chunk)
 
@@ -70,6 +68,20 @@ def download(request, pname):
     ret = {
         "status": r.status_code
     }
+
+    return JsonResponse(ret)
+
+def distile(request, pname):
+    """Distile data from hosts.gz file for project named 'pname'."""
+
+    # Variables:
+    proj = BOINCProject.objects.get(name=pname)
+
+    # Distile:
+    proj.distile_stats()
+
+    # Return data:
+    ret = {}
 
     return JsonResponse(ret)
 

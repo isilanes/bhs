@@ -20,4 +20,5 @@ urlpatterns = [
 
     # Action URLs:
     path('download/<slug:pname>/', views.download, name='download'),
+    path('distile/<slug:pname>/', views.distile, name='distile'),
 ]
