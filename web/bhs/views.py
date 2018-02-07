@@ -85,3 +85,19 @@ def distile(request, pname):
 
     return JsonResponse(ret)
 
+def get_data(request, pname):
+    """download() + distile() data from hosts.gz file for project named 'pname'."""
+
+    # Variables:
+    proj = BOINCProject.objects.get(name=pname)
+
+    # Download:
+    r = requests.get(url, stream=True)
+    if r.status_code == 200:
+        print(r)
+
+    # Return data:
+    ret = {}
+
+    return JsonResponse(ret)
+
