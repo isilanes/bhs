@@ -1,5 +1,4 @@
 # Standard libs:
-import requests
 import subprocess as sp
 
 # Django libs:
@@ -7,7 +6,7 @@ from django.http import JsonResponse
 from django.shortcuts import render, redirect
 
 # Our libs:
-from bhs.models import  BOINCProject, BOINCSettings
+from bhs.models import  BOINCProject, BOINCSettings, LogItem
 
 # Index views:
 def index(request):
@@ -50,54 +49,39 @@ def project_data(request, pname, what):
 
 
 # Action URLs:
-def download(request, pname):
-    """Download hosts file for project named pname."""
+def process_oldest(request):
+    """Download and process hosts file for oldest project."""
 
-    # Variables:
-    rate = BOINCSettings.objects.get(name="default").bwlimit
-    url = BOINCProject.objects.get(name=pname).url
-    hosts_fn = BOINCSettings.objects.get(name="default").hostsgz_path
+    # Get project whose less recent log entry is oldest:
+    oldest = get_less_recently_logged_project()
 
-    # Download:
-    r = requests.get(url, stream=True)
-    with open(hosts_fn, "wb") as fhandle:
-        for chunk in r:
-            fhandle.write(chunk)
+    # Download 'oldest' project:
+    oldest.download()
 
-    # Return data:
-    ret = {
-        "status": r.status_code
-    }
-
-    return JsonResponse(ret)
-
-def distile(request, pname):
-    """Distile data from hosts.gz file for project named 'pname'."""
-
-    # Variables:
-    proj = BOINCProject.objects.get(name=pname)
-
-    # Distile:
-    proj.distile_stats()
+    # Process downloaded hosts.gz file:
+    oldest.distile_stats()
 
     # Return data:
     ret = {}
 
     return JsonResponse(ret)
 
-def get_data(request, pname):
-    """download() + distile() data from hosts.gz file for project named 'pname'."""
 
-    # Variables:
-    proj = BOINCProject.objects.get(name=pname)
+# Helper functions:
+def get_less_recently_logged_project():
+    """Return project whose most recent log is the oldest."""
 
-    # Download:
-    r = requests.get(url, stream=True)
-    if r.status_code == 200:
-        print(r)
+    dsu = []
+    for proj in BOINCProject.objects.filter(active=True):
+        # Get latest log entry for this project:
+        latest = LogItem.objects.filter(project=proj)
 
-    # Return data:
-    ret = {}
+        # If no log item found, then never logged. In that case, choose this project:
+        if not latest:
+            return proj
 
-    return JsonResponse(ret)
+        latest = latest.order_by("-date")[0]
+        dsu.append([latest.date, proj])
+
+    return sorted(dsu)[0][1]
 

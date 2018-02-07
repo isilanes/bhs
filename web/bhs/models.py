@@ -1,6 +1,7 @@
 # Standard libs:
 import os
 import re
+import requests
 
 # Django libs:
 from django.db import models
@@ -65,6 +66,18 @@ class BOINCProject(models.Model):
 
         return data_win, data_lin, data_mac, data_other
 
+    def download(self):
+        """Download hosts.gz file."""
+
+        # Variables:
+        rate = BOINCSettings.objects.get(name="default").bwlimit
+
+        # Download:
+        r = requests.get(self.url, stream=True)
+        with open(self.hostsgz_fn, "wb") as fhandle:
+            for chunk in r:
+                fhandle.write(chunk)
+
     def distile_stats(self):
         """Distile the stats from a downloaded hosts.gz file."""
 
@@ -73,17 +86,14 @@ class BOINCProject(models.Model):
   
         stat = {}
         for os_name in os_list:
-            stat[os_name] = {
-                "nhosts": 0,
-                "credit": 0,
-            }
+            stat[os_name] = {"nhosts": 0, "credit": 0 }
   
         # Pre-compile pattern, for speed:
         pattern = r'total_credit>([^<]+)<';
         search_cre = re.compile(pattern).search
         
         # Distile file with Unix and connect to process:
-        cmd = 'zcat {fn} | grep -F -e total_credit -e os_name'.format(fn=BOINCSettings.objects.get(name="default").hostsgz_path)
+        cmd = 'zcat {fn} | grep -F -e total_credit -e os_name'.format(fn=self.hostsgz_fn)
         with os.popen(cmd) as f:
             odd = True
             for line in f:
@@ -119,6 +129,14 @@ class BOINCProject(models.Model):
         L.save()
 
 
+    # Public properties:
+    @property
+    def hostsgz_fn(self):
+        """Full path to downloaded hosts.gz file."""
+
+        return os.path.join(BOINCSettings.objects.get(name="default").logdir, "{s.name}_hosts.gz".format(s=self))
+
+
     # Special methods:
     def __unicode__(self):
         return self.__str__()
@@ -138,12 +156,7 @@ class BOINCSettings(models.Model):
     ref_date = models.DateField("Reference date", default=timezone.datetime(1970, 1, 1))
 
     # Public properties:
-    @property
-    def hostsgz_path(self):
-        """Path to downloaded hosts.gz file."""
-
-        return os.path.join(self.logdir, "hosts.gz")
-
+    pass
 
     # Special methods:
     def __unicode__(self):
@@ -156,7 +169,8 @@ class LogItem(models.Model):
     """Log item."""
 
     # Attributes:
-    date = models.DateField("Timestamp", default=timezone.now)
+    project = models.ForeignKey(BOINCProject, on_delete=models.CASCADE, default=1)
+    date = models.DateTimeField("Timestamp", default=timezone.now)
     nwindows = models.IntegerField("Windows hosts", default=0)
     nlinux = models.IntegerField("Linux hosts", default=0)
     nmacos = models.IntegerField("MacOS hosts", default=0)
@@ -171,5 +185,5 @@ class LogItem(models.Model):
         return self.__str__()
 
     def __str__(self):
-        return "{s.date}".format(s=self)
+        return "{s.project} logged at {s.date}".format(s=self)
 

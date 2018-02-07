@@ -19,6 +19,5 @@ urlpatterns = [
     path('project_data/<slug:pname>/<slug:what>', views.project_data, name='project_data'),
 
     # Action URLs:
-    path('download/<slug:pname>/', views.download, name='download'),
-    path('distile/<slug:pname>/', views.distile, name='distile'),
+    path('process_oldest/', views.process_oldest, name='process_oldest'),
 ]
