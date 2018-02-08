@@ -1,4 +1,5 @@
 # Standard libs:
+import os
 import subprocess as sp
 
 # Django libs:
@@ -12,8 +13,8 @@ from bhs.models import  BOINCProject, BOINCSettings, LogItem
 from logworks import logworks
 
 # Logger:
-#logger = logworks.FileLogger()
-logger = logworks.Logger()
+logfile = os.path.join(BOINCSettings.objects.get(name="default").logdir, "bhs.log")
+logger = logworks.Logger(logfile=logfile)
 
 # Index views:
 def index(request):

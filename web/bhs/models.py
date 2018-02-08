@@ -70,7 +70,7 @@ class BOINCProject(models.Model):
         """Download hosts.gz file."""
 
         # Anounce our intent:
-        msg = "Will download project [ {p} ]".format(p=oldest)
+        msg = "Will download project [ {s} ]".format(s=self)
         logger.info(msg)
 
         # Variables:
