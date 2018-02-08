@@ -69,6 +69,10 @@ class BOINCProject(models.Model):
     def download(self, logger=None):
         """Download hosts.gz file."""
 
+        # Anounce our intent:
+        msg = "Will download project [ {p} ]".format(p=oldest)
+        logger.info(msg)
+
         # Variables:
         rate = BOINCSettings.objects.get(name="default").bwlimit
         if logger:
@@ -107,7 +111,7 @@ class BOINCProject(models.Model):
         
         # Say we will distile:
         if logger:
-            msg = "Will gather data from hosts file: {s.hostgz_fn}".format(s=self)
+            msg = "Will gather data from hosts file: {s.hostsgz_fn}".format(s=self)
             logger.info(msg)
 
         # Distile file with Unix and connect to process:
@@ -139,6 +143,7 @@ class BOINCProject(models.Model):
 
         # Save log item:
         L = LogItem()
+        L.project = self
         L.date = timezone.now()
         L.nwindows = stat["win"]["nhosts"]
         L.nlinux = stat["lin"]["nhosts"]
