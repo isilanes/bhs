@@ -8,6 +8,13 @@ from django.shortcuts import render, redirect
 # Our libs:
 from bhs.models import  BOINCProject, BOINCSettings, LogItem
 
+# My libs:
+from logworks import logworks
+
+# Logger:
+#logger = logworks.FileLogger()
+logger = logworks.Logger()
+
 # Index views:
 def index(request):
     """Show index."""
@@ -54,9 +61,11 @@ def process_oldest(request):
 
     # Get project whose less recent log entry is oldest:
     oldest = get_less_recently_logged_project()
+    msg = "Will download project [ {p} ]".format(p=oldest)
+    logger.info(msg)
 
     # Download 'oldest' project:
-    oldest.download()
+    oldest.download(logger)
 
     # Process downloaded hosts.gz file:
     oldest.distile_stats()

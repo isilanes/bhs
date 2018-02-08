@@ -66,24 +66,37 @@ class BOINCProject(models.Model):
 
         return data_win, data_lin, data_mac, data_other
 
-    def download(self):
+    def download(self, logger=None):
         """Download hosts.gz file."""
 
         # Variables:
         rate = BOINCSettings.objects.get(name="default").bwlimit
+        if logger:
+            msg = "Will download at a rate of {r} kb/s".format(r=rate)
+            logger.info(msg)
 
-        # Download:
+        # Say we will download:
+        if logger:
+            msg = "Will download from URL: {u}".format(u=self.url)
+            logger.info(msg)
+
+        # Perform download:
         r = requests.get(self.url, stream=True)
         with open(self.hostsgz_fn, "wb") as fhandle:
             for chunk in r:
                 fhandle.write(chunk)
 
-    def distile_stats(self):
+        # Say we downloaded:
+        if logger:
+            msg = "Downloaded hosts.gz for project [ {s.full_name} ]".format(s=self)
+            logger.info(msg)
+
+    def distile_stats(self, logger=None):
         """Distile the stats from a downloaded hosts.gz file."""
 
+        # Initialize:
         credit = 0
         os_list = ['win', 'lin', 'mac', 'oth']
-  
         stat = {}
         for os_name in os_list:
             stat[os_name] = {"nhosts": 0, "credit": 0 }
@@ -92,6 +105,11 @@ class BOINCProject(models.Model):
         pattern = r'total_credit>([^<]+)<';
         search_cre = re.compile(pattern).search
         
+        # Say we will distile:
+        if logger:
+            msg = "Will gather data from hosts file: {s.hostgz_fn}".format(s=self)
+            logger.info(msg)
+
         # Distile file with Unix and connect to process:
         cmd = 'zcat {fn} | grep -F -e total_credit -e os_name'.format(fn=self.hostsgz_fn)
         with os.popen(cmd) as f:
@@ -115,6 +133,10 @@ class BOINCProject(models.Model):
                         stat['oth']["nhosts"] += 1
                         stat['oth']["credit"] += credit
   
+        if logger:
+            msg = "Data gathered for project [ {s.full_name} ]".format(s=self)
+            logger.info(msg)
+
         # Save log item:
         L = LogItem()
         L.date = timezone.now()
@@ -127,6 +149,10 @@ class BOINCProject(models.Model):
         L.cmacos = stat["mac"]["nhosts"]
         L.cother = stat["oth"]["nhosts"]
         L.save()
+
+        if logger:
+            msg = "Data for project [ {s.full_name} ] saved in DB".format(s=self)
+            logger.info(msg)
 
 
     # Public properties:
