@@ -62,9 +62,6 @@ for what in ["nhosts", "credit"]:
 
             t = SETTINGS.ref_date + dt
             logger.info("Harvesting {w} data for time {t}".format(t=t, w=what))
-            #L = LogEntry()
-            #L.date = t
-            #L.nwindows = win
 
 # Insert data into DB:
 for timestamp in data:
