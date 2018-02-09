@@ -95,9 +95,10 @@ class BOINCProject(models.Model):
             msg = "Downloaded hosts.gz for project [ {s.full_name} ]".format(s=self)
             logger.info(msg)
 
-    def distile_stats(self, logger=None):
-        """Distile the stats from a downloaded hosts.gz file."""
-
+    def distile_stats(self, logger=None, delete=True):
+        """Distile the stats from a downloaded hosts.gz file.
+        hosts.gz file is deleted afterwards, if 'delete' is True.
+        """
         # Initialize:
         credit = 0
         os_list = ['win', 'lin', 'mac', 'oth']
@@ -115,7 +116,7 @@ class BOINCProject(models.Model):
             logger.info(msg)
 
         # Distile file with Unix and connect to process:
-        cmd = 'zcat {fn} | grep -F -e total_credit -e os_name'.format(fn=self.hostsgz_fn)
+        cmd = 'zcat {s.hostsgz_fn} | grep -F -e total_credit -e os_name'.format(s=self)
         with os.popen(cmd) as f:
             odd = True
             for line in f:
@@ -158,6 +159,12 @@ class BOINCProject(models.Model):
         if logger:
             msg = "Data for project [ {s.full_name} ] saved in DB".format(s=self)
             logger.info(msg)
+
+        if delete:
+            if logger:
+                msg = "Log file will be deleted: {s.hostsgz_fn}".format(s=self)
+                logger.warning(msg)
+            os.unlink(self.hostsgz_fn)
 
 
     # Public properties:
