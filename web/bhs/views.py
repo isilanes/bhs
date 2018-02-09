@@ -13,7 +13,10 @@ from bhs.models import  BOINCProject, BOINCSettings, LogEntry
 from logworks import logworks
 
 # Logger:
-logfile = os.path.join(BOINCSettings.objects.get(name="default").logdir, "bhs.log")
+try:
+    logfile = os.path.join(BOINCSettings.objects.get(name="default").logdir, "bhs.log")
+except:
+    logfile = "bhs.log"
 logger = logworks.Logger(logfile=logfile)
 
 # Index views:
@@ -47,11 +50,17 @@ def project_data(request, pname, what):
 
     entries = LogEntry.objects.filter(project=proj).order_by("date")
     
-    # Extract data to plot:
-    data_win, data_lin, data_mac, data_other = proj.get_plot_data("nhosts")
-
+    # Extract data to plot from DB:
     if what == "nhosts":
         data_win = [{"x": e.date, "y": e.nwindows} for e in entries]
+        data_lin = [{"x": e.date, "y": e.nlinux} for e in entries]
+        data_mac = [{"x": e.date, "y": e.nmacos} for e in entries]
+        data_other = [{"x": e.date, "y": e.nother} for e in entries]
+    elif what == "credit":
+        data_win = [{"x": e.date, "y": e.cwindows} for e in entries]
+        data_lin = [{"x": e.date, "y": e.clinux} for e in entries]
+        data_mac = [{"x": e.date, "y": e.cmacos} for e in entries]
+        data_other = [{"x": e.date, "y": e.cother} for e in entries]
 
     # Organize data, and return it:
     data = {

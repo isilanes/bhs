@@ -191,7 +191,7 @@ class BOINCSettings(models.Model):
     logdir = models.CharField("Log dir", 
                               default=os.path.join(os.environ['HOME'], ".LOGs", "boinc"), 
                               max_length=200)
-    ref_date = models.DateField("Reference date", default=timezone.datetime(1970, 1, 1))
+    ref_date = models.DateTimeField("Reference date", default=timezone.datetime(1970, 1, 1))
 
     # Public properties:
     pass
