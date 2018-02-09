@@ -143,7 +143,7 @@ class BOINCProject(models.Model):
             logger.info(msg)
 
         # Save log item:
-        L = LogItem()
+        L = LogEntry()
         L.project = self
         L.date = timezone.now()
         L.nwindows = stat["win"]["nhosts"]
@@ -203,7 +203,7 @@ class BOINCSettings(models.Model):
     def __str__(self):
         return self.name
 
-class LogItem(models.Model):
+class LogEntry(models.Model):
     """Log item."""
 
     # Attributes:

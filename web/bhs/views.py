@@ -7,7 +7,7 @@ from django.http import JsonResponse
 from django.shortcuts import render, redirect
 
 # Our libs:
-from bhs.models import  BOINCProject, BOINCSettings, LogItem
+from bhs.models import  BOINCProject, BOINCSettings, LogEntry
 
 # My libs:
 from logworks import logworks
@@ -42,10 +42,18 @@ def project(request, pname):
 def project_data(request, pname, what):
     """Return JSON data for project named 'pname', and item 'what' (nhosts or credit)."""
 
+    # Get project object from name 'pname':
     proj = BOINCProject.objects.get(name=pname)
 
-    data_win, data_lin, data_mac, data_other = proj.get_plot_data(what)
+    entries = LogEntry.objects.filter(project=proj).order_by("date")
+    
+    # Extract data to plot:
+    data_win, data_lin, data_mac, data_other = proj.get_plot_data("nhosts")
 
+    if what == "nhosts":
+        data_win = [{"x": e.date, "y": e.nwindows} for e in entries]
+
+    # Organize data, and return it:
     data = {
         "win": data_win,
         "lin": data_lin,
@@ -82,7 +90,7 @@ def get_less_recently_logged_project():
     dsu = []
     for proj in BOINCProject.objects.filter(active=True):
         # Get latest log entry for this project:
-        latest = LogItem.objects.filter(project=proj)
+        latest = LogEntry.objects.filter(project=proj)
 
         # If no log item found, then never logged. In that case, choose this project:
         if not latest:
