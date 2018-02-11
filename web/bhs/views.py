@@ -7,14 +7,14 @@ from django.http import JsonResponse
 from django.shortcuts import render, redirect
 
 # Our libs:
-from bhs.models import  BOINCProject, BOINCSettings, LogItem
+from bhs.models import  BOINCProject, BOINCSettings, LogEntry
 
 # My libs:
 from logworks import logworks
 
 # Logger:
-#logfile = os.path.join(BOINCSettings.objects.get(name="default").logdir, "bhs.log")
-logger = logworks.Logger(logfile="bhs.log")
+logfile = "bhs.log"
+logger = logworks.Logger(logfile=logfile)
 
 # Index views:
 def index(request):
@@ -42,10 +42,24 @@ def project(request, pname):
 def project_data(request, pname, what):
     """Return JSON data for project named 'pname', and item 'what' (nhosts or credit)."""
 
+    # Get project object from name 'pname':
     proj = BOINCProject.objects.get(name=pname)
 
-    data_win, data_lin, data_mac, data_other = proj.get_plot_data(what)
+    entries = LogEntry.objects.filter(project=proj).order_by("date")
+    
+    # Extract data to plot from DB:
+    if what == "nhosts":
+        data_win = [{"x": e.date, "y": e.nwindows} for e in entries]
+        data_lin = [{"x": e.date, "y": e.nlinux} for e in entries]
+        data_mac = [{"x": e.date, "y": e.nmacos} for e in entries]
+        data_other = [{"x": e.date, "y": e.nother} for e in entries]
+    elif what == "credit":
+        data_win = [{"x": e.date, "y": e.cwindows} for e in entries]
+        data_lin = [{"x": e.date, "y": e.clinux} for e in entries]
+        data_mac = [{"x": e.date, "y": e.cmacos} for e in entries]
+        data_other = [{"x": e.date, "y": e.cother} for e in entries]
 
+    # Organize data, and return it:
     data = {
         "win": data_win,
         "lin": data_lin,
@@ -82,7 +96,7 @@ def get_less_recently_logged_project():
     dsu = []
     for proj in BOINCProject.objects.filter(active=True):
         # Get latest log entry for this project:
-        latest = LogItem.objects.filter(project=proj)
+        latest = LogEntry.objects.filter(project=proj)
 
         # If no log item found, then never logged. In that case, choose this project:
         if not latest:

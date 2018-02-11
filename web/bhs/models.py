@@ -95,9 +95,10 @@ class BOINCProject(models.Model):
             msg = "Downloaded hosts.gz for project [ {s.full_name} ]".format(s=self)
             logger.info(msg)
 
-    def distile_stats(self, logger=None):
-        """Distile the stats from a downloaded hosts.gz file."""
-
+    def distile_stats(self, logger=None, delete=True):
+        """Distile the stats from a downloaded hosts.gz file.
+        hosts.gz file is deleted afterwards, if 'delete' is True.
+        """
         # Initialize:
         credit = 0
         os_list = ['win', 'lin', 'mac', 'oth']
@@ -115,7 +116,7 @@ class BOINCProject(models.Model):
             logger.info(msg)
 
         # Distile file with Unix and connect to process:
-        cmd = 'zcat {fn} | grep -F -e total_credit -e os_name'.format(fn=self.hostsgz_fn)
+        cmd = 'zcat {s.hostsgz_fn} | grep -F -e total_credit -e os_name'.format(s=self)
         with os.popen(cmd) as f:
             odd = True
             for line in f:
@@ -142,7 +143,7 @@ class BOINCProject(models.Model):
             logger.info(msg)
 
         # Save log item:
-        L = LogItem()
+        L = LogEntry()
         L.project = self
         L.date = timezone.now()
         L.nwindows = stat["win"]["nhosts"]
@@ -158,6 +159,12 @@ class BOINCProject(models.Model):
         if logger:
             msg = "Data for project [ {s.full_name} ] saved in DB".format(s=self)
             logger.info(msg)
+
+        if delete:
+            if logger:
+                msg = "Log file will be deleted: {s.hostsgz_fn}".format(s=self)
+                logger.warning(msg)
+            os.unlink(self.hostsgz_fn)
 
 
     # Public properties:
@@ -184,7 +191,7 @@ class BOINCSettings(models.Model):
     logdir = models.CharField("Log dir", 
                               default=os.path.join(os.environ['HOME'], ".LOGs", "boinc"), 
                               max_length=200)
-    ref_date = models.DateField("Reference date", default=timezone.datetime(1970, 1, 1))
+    ref_date = models.DateTimeField("Reference date", default=timezone.datetime(1970, 1, 1))
 
     # Public properties:
     pass
@@ -196,7 +203,7 @@ class BOINCSettings(models.Model):
     def __str__(self):
         return self.name
 
-class LogItem(models.Model):
+class LogEntry(models.Model):
     """Log item."""
 
     # Attributes:
