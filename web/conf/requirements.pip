@@ -4,7 +4,7 @@ cycler==0.10.0
 Django==2.0.1
 gunicorn==19.7.1
 idna==2.6
--e git+git@github.com:isilanes/logworks.git@v0.5b#egg=logworks
+-e git+https://github.com/isilanes/logworks.git@v0.5b#egg=logworks
 matplotlib==2.1.1
 numpy==1.13.3
 pyparsing==2.2.0

@@ -4,3 +4,4 @@ __pycache__
 /static/
 backup
 bhs.db
+bhs.log

@@ -9,9 +9,24 @@ if [[ ! -f $LOCALDB ]]; then
     echo Local db $LOCALDB does not exist!
     exit
 fi
+#
+# Get local log:
+LOCALLOG=$2
+if [[ "x$LOCALLOG" == "x" ]]; then
+    echo No local log given!
+    exit
+fi
+
+if [[ ! -f $LOCALLOG ]]; then
+    echo Local log $LOCALLOG does not exist!
+    exit
+fi
 
 # Get version:
 TAG=$(git branch --color=never | awk '/\*/{print $2}')
 
 # Do run:
-docker run -v $LOCALDB:/srv/WebProgress/progress.db:rw --publish=8081:8000 isilanes/django-progress:$TAG
+docker run \
+    -v $LOCALDB:/srv/WebBHS/bhs.db:rw \
+    -v $LOCALLOG:/srv/WebBHS/bhs.log:rw \
+    --publish=8081:8000 isilanes/bhs:$TAG

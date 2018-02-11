@@ -13,8 +13,8 @@ from bhs.models import  BOINCProject, BOINCSettings, LogItem
 from logworks import logworks
 
 # Logger:
-logfile = os.path.join(BOINCSettings.objects.get(name="default").logdir, "bhs.log")
-logger = logworks.Logger(logfile=logfile)
+#logfile = os.path.join(BOINCSettings.objects.get(name="default").logdir, "bhs.log")
+logger = logworks.Logger(logfile="bhs.log")
 
 # Index views:
 def index(request):

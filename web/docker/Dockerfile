@@ -16,7 +16,7 @@ ENV DOCKYARD_SRC=.
 ENV DOCKYARD_SRVHOME=/srv
 
 # Directory in container for project source files:
-ENV DOCKYARD_SRVPROJ=/srv/WebProgress
+ENV DOCKYARD_SRVPROJ=/srv/WebBHS
 
 # Update the default application repository sources list:
 RUN apt-get update
@@ -44,7 +44,7 @@ RUN apt-get install -y libpng-dev
 RUN apt-get install -y libfreetype6-dev
 RUN apt-get install -y python3 python3-pip python3-tk
 RUN pip3 install pip --upgrade
-RUN pip3 install --no-binary :all: -r $DOCKYARD_SRVPROJ/conf/requirements.txt
+RUN pip3 install --no-binary :all: -r $DOCKYARD_SRVPROJ/conf/requirements.pip
 
 # Port to expose:
 EXPOSE 8000
