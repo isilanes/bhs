@@ -29,4 +29,4 @@ TAG=$(git branch --color=never | awk '/\*/{print $2}')
 docker run \
     -v $LOCALDB:/srv/WebBHS/bhs.db:rw \
     -v $LOCALLOG:/srv/WebBHS/bhs.log:rw \
-    --publish=8081:8000 isilanes/bhs:$TAG
+    --publish=8082:8000 isilanes/bhs:$TAG
