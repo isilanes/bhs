@@ -85,7 +85,15 @@ var chart_nhosts = new Chart(ctx_nhosts, {
                     type: "linear",
                     position: 'left',
                     ticks: {
-                        min: 0
+                        min: 0,
+                        userCallback: function(label, index, labels) {
+                            if (label > 2000000) {
+                                return (label/1000000) + "M"
+                            }
+                            if (label > 2000) {
+                                return (label/1000) + "k"
+                            }
+                        }
                     },
                     scaleLabel: {
                         display: true,
