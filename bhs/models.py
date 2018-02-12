@@ -150,10 +150,10 @@ class BOINCProject(models.Model):
         L.nlinux = stat["lin"]["nhosts"]
         L.nmacos = stat["mac"]["nhosts"]
         L.nother = stat["oth"]["nhosts"]
-        L.cwindows = stat["win"]["nhosts"]
-        L.clinux = stat["lin"]["nhosts"]
-        L.cmacos = stat["mac"]["nhosts"]
-        L.cother = stat["oth"]["nhosts"]
+        L.cwindows = stat["win"]["credit"]
+        L.clinux = stat["lin"]["credit"]
+        L.cmacos = stat["mac"]["credit"]
+        L.cother = stat["oth"]["credit"]
         L.save()
 
         if logger:
