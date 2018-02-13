@@ -15,6 +15,10 @@ for conf in try_confs:
     except:
         continue
 
+# Name of specific settings, if passed from environment, such as:
+# $ SETTINGS=rpi python -m manage runserver localhost:8081
+WHICH_SETTINGS = os.environ.get("SETTINGS", "default")
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 

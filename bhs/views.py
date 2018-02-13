@@ -7,14 +7,14 @@ from django.http import JsonResponse
 from django.shortcuts import render, redirect
 
 # Our libs:
-from bhs.models import  BOINCProject, BOINCSettings, LogEntry
+from bhs.models import  BOINCProject, LogEntry
+from bhs.models import preferences
 
 # My libs:
 from logworks import logworks
 
 # Logger:
-logfile = "bhs.log"
-logger = logworks.Logger(logfile=logfile)
+logger = logworks.Logger(logfile="bhs.log")
 
 # Index views:
 def index(request):
@@ -27,6 +27,7 @@ def index(request):
     return render(request, 'bhs/index.html', context)
 
 def project(request, pname):
+    """Show plots for project named 'pname'."""
 
     proj = BOINCProject.objects.get(name=pname)
 

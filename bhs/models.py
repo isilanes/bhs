@@ -7,6 +7,16 @@ import requests
 from django.db import models
 from django.utils import timezone
 
+# Our libs:
+from WebBHS import settings
+
+# Functions:
+def preferences():
+    """Return required BOINCSettings object."""
+
+    return BOINCSettings.objects.get(name=settings.WHICH_SETTINGS)
+
+
 # Classes:
 class BOINCProject(models.Model):
     """Data and methods for a BOINC project."""
@@ -23,11 +33,11 @@ class BOINCProject(models.Model):
         """Generate plot data for 'what'."""
 
         # Get settings:
-        SETTINGS = BOINCSettings.objects.get(name="default")
+        #SETTINGS = BOINCSettings.objects.get(name="default")
 
         # File to read data from:
         fn = "{s.full_name}.{w}.dat".format(s=self, w=what)
-        fn = os.path.join(SETTINGS.logdir, fn)
+        fn = os.path.join(preferences().logdir, fn)
 
         # Arrays to put data:
         X = [] # x axis (time)
@@ -38,7 +48,7 @@ class BOINCProject(models.Model):
             for line in f:
                 aline = [ int(x) for x in line.split() ]
                 dt = timezone.timedelta(seconds=int(aline[0]))
-                t = SETTINGS.ref_date + dt
+                t = preferences().ref_date + dt
                 X.append(t)
                 for i in range(4):
                     Y[i].append(aline[i+1])
@@ -74,7 +84,8 @@ class BOINCProject(models.Model):
         logger.info(msg)
 
         # Variables:
-        rate = BOINCSettings.objects.get(name="default").bwlimit
+        #rate = BOINCSettings.objects.get(name="default").bwlimit
+        rate = preferences().bwlimit
         if logger:
             msg = "Will download at a rate of {r} kb/s".format(r=rate)
             logger.info(msg)
@@ -172,7 +183,8 @@ class BOINCProject(models.Model):
     def hostsgz_fn(self):
         """Full path to downloaded hosts.gz file."""
 
-        return os.path.join(BOINCSettings.objects.get(name="default").logdir, "{s.name}_hosts.gz".format(s=self))
+        #return os.path.join(BOINCSettings.objects.get(name="default").logdir, "{s.name}_hosts.gz".format(s=self))
+        return os.path.join(preferences().logdir, "{s.name}_hosts.gz".format(s=self))
 
 
     # Special methods:
