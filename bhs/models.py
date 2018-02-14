@@ -84,7 +84,6 @@ class BOINCProject(models.Model):
         logger.info(msg)
 
         # Variables:
-        #rate = BOINCSettings.objects.get(name="default").bwlimit
         rate = preferences().bwlimit
         if logger:
             msg = "Will download at a rate of {r} kb/s".format(r=rate)

@@ -1,3 +1,3 @@
 # Start Gunicorn server:
 echo Starting Gunicorn...
-exec gunicorn WebBHS.wsgi:application --bind 0.0.0.0:8082 --workers 3
+exec gunicorn WebBHS.wsgi:application --bind 0.0.0.0:8082 --workers 3 --timeout 1200
