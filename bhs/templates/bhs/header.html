@@ -9,24 +9,10 @@
 
 <table>
     <tr>
-      <td><a href="/"><img src="{% static "bhs/icons/home.png" %}" alt="default" style="width: 64px;" /></a></td>
       <td><a href="{% url 'bhs:index' %}"><img src="{% static "bhs/icons/boinc_icon.png" %}" alt="default" style="width: 64px;" /></a></td>
       {% for proj in project_list %}
-      <td>
-          <a href="{% url 'bhs:project' proj.name %}">
-          {% with "bhs/icons/"|add:proj.icon as proj_icon %}
-              <img src="{% static proj_icon %}" alt="{{proj.name}}" style="width: 64px;" />
-          {% endwith %}
-          </a>
-      </td>
-      {% endfor %}
-
-      {% for proj in nonelist %}
-      <td>
-          <a href="{% url 'bhs:plot_item' account.name %}">
-          {% with "bhs/icons/"|add:project.icon as proj_icon %}
-          <img src="{% static acc_icon %}" alt="{{account.name}}" style="width: 64px;" /></a>
-          {% endwith %}
+      <td style="font-size: 150%">
+          <a href="{% url 'bhs:project' proj.name %}">{{proj.full_name}}</a>
       </td>
       {% endfor %}
     </tr>
